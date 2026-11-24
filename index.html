@@ -1,0 +1,3564 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Welmrt - ويلمرت | سوبر ماركت حماة المتكامل</title>
+
+  <!-- Google Fonts: Cairo (Arabic) & Plus Jakarta Sans (English) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- Lucide Icons CDN -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            brand: 'var(--color-brand, #D91E18)',
+            fresh: 'var(--color-fresh, #3B9E29)',
+            gold: 'var(--color-gold, #F5C518)',
+            ink: '#0F172A'
+          },
+          fontFamily: {
+            arabic: ['Cairo', 'sans-serif'],
+            latin: ['Plus Jakarta Sans', 'Cairo', 'sans-serif']
+          }
+        }
+      }
+    };
+  </script>
+
+  <style>
+    :root {
+      --color-brand: #D91E18;
+      --color-fresh: #3B9E29;
+      --color-gold: #F5C518;
+    }
+
+    body {
+      font-family: 'Cairo', 'Plus Jakarta Sans', sans-serif;
+      background-color: #F8FAFC;
+      color: #0F172A;
+      overflow-x: hidden;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    html[lang="en"] body {
+      font-family: 'Plus Jakarta Sans', 'Cairo', sans-serif;
+    }
+
+    .no-scrollbar::-webkit-scrollbar {
+      display: none;
+    }
+    .no-scrollbar {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .animate-fade-up {
+      animation: fadeUp 0.25s ease-out forwards;
+    }
+
+    @media print {
+      body * { visibility: hidden !important; }
+      #printable-invoice, #printable-invoice * { visibility: visible !important; }
+      #printable-invoice {
+        position: fixed;
+        inset: 0;
+        background: #fff;
+        padding: 20px;
+        z-index: 99999;
+      }
+      .no-print { display: none !important; }
+    }
+  </style>
+</head>
+<body class="min-h-screen antialiased selection:bg-brand selection:text-white">
+
+  <!-- Toast Notification Container -->
+  <div id="toast-container" class="fixed top-4 left-1/2 -translate-x-1/2 z-[120] flex flex-col gap-2 w-[92%] max-w-md pointer-events-none"></div>
+
+  <!-- ======================================================================= -->
+  <!-- VIEW 1: CUSTOMER STOREFRONT (واجهة المتجر)                              -->
+  <!-- ======================================================================= -->
+  <div id="storefront-view" class="min-h-screen flex flex-col">
+
+    <!-- Top Info Ticker -->
+    <div class="bg-slate-900 text-white text-[11px] sm:text-xs py-1.5 px-3">
+      <div class="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-2">
+        <div class="flex items-center gap-2">
+          <span class="inline-flex items-center gap-1 bg-brand/90 text-white font-bold px-2 py-0.5 rounded-full text-[10px]">
+            <i data-lucide="map-pin" class="w-3 h-3"></i>
+            <span data-i18n="hamaCoverage">حماة وريفها</span>
+          </span>
+          <span id="free-delivery-hint" class="hidden text-slate-200 font-semibold"></span>
+        </div>
+        <div class="flex items-center gap-2">
+          <span class="text-slate-400" data-i18n="exchangeRateLabel">سعر الصرف:</span>
+          <span id="live-rate-badge" class="font-extrabold text-gold"></span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Main Sticky Header (Zero Admin Buttons or Hints) -->
+    <header class="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-slate-200/80 shadow-sm">
+      <div class="max-w-7xl mx-auto px-3 sm:px-6 py-2.5">
+        <div class="flex items-center justify-between gap-2 sm:gap-3">
+
+          <!-- Brand Logo (Secret 5-tap trigger, zero visual hint) -->
+          <div id="brand-logo-trigger" class="flex items-center gap-2.5 cursor-pointer select-none shrink-0">
+            <div id="header-logo-box" class="w-11 h-11 sm:w-12 sm:h-12 rounded-2xl overflow-hidden flex items-center justify-center bg-white border border-slate-100 shadow-sm shrink-0"></div>
+            <div class="leading-tight hidden sm:block">
+              <div id="header-store-name" class="font-black text-base sm:text-lg text-brand tracking-tight">Welmrt - ويلمرت</div>
+              <div class="text-[10px] sm:text-[11px] font-bold text-fresh" data-i18n="storeTagline">سوبر ماركت حماة المتكامل</div>
+            </div>
+          </div>
+
+          <!-- Desktop Search Bar -->
+          <div class="hidden md:flex flex-1 max-w-md mx-2 relative">
+            <input id="search-input-desktop" type="text"
+              class="w-full bg-slate-100 hover:bg-slate-200/60 focus:bg-white border border-transparent focus:border-brand rounded-2xl py-2.5 ps-10 pe-4 text-sm font-semibold outline-none transition-all"
+              placeholder="ابحث عن منتج، ماركة، أو قسم..." />
+            <i data-lucide="search" class="w-4 h-4 text-slate-400 absolute top-1/2 -translate-y-1/2 start-3.5 pointer-events-none"></i>
+          </div>
+
+          <!-- Header Action Controls -->
+          <div class="flex items-center gap-1.5 sm:gap-2">
+
+            <!-- Prominent 3-Mode Currency Switcher (SYP / USD / Dual) -->
+            <div id="currency-switcher" class="inline-flex items-center bg-slate-100 p-0.5 rounded-xl border border-slate-200/90 shadow-inner" role="group" aria-label="Currency Switcher">
+              <button type="button" data-cur-mode="syp"
+                class="cur-btn px-2 sm:px-2.5 py-1.5 rounded-lg text-[11px] sm:text-xs font-extrabold transition-all">ل.س</button>
+              <button type="button" data-cur-mode="usd"
+                class="cur-btn px-2 sm:px-2.5 py-1.5 rounded-lg text-[11px] sm:text-xs font-extrabold transition-all">$</button>
+              <button type="button" data-cur-mode="dual"
+                class="cur-btn px-2 sm:px-2.5 py-1.5 rounded-lg text-[11px] sm:text-xs font-extrabold transition-all" data-i18n="dualLabel">مزدوج</button>
+            </div>
+
+            <!-- AI Smart Budget Basket Button -->
+            <button id="open-budget-btn" type="button"
+              class="flex items-center gap-1.5 bg-gold hover:brightness-95 text-slate-900 font-extrabold text-xs px-2.5 sm:px-3 py-2 rounded-xl shadow-sm transition-all active:scale-95"
+              title="سلة الميزانية الذكية">
+              <i data-lucide="sparkles" class="w-4 h-4"></i>
+              <span class="hidden lg:inline" data-i18n="smartBasket">سلة الميزانية الذكية</span>
+            </button>
+
+            <!-- Bilingual Toggle -->
+            <button id="lang-toggle-btn" type="button"
+              class="bg-slate-100 hover:bg-slate-200 text-slate-800 font-extrabold text-xs px-2.5 py-2 rounded-xl transition-all active:scale-95">
+              EN
+            </button>
+
+            <!-- Cart Drawer Button -->
+            <button id="open-cart-btn" type="button"
+              class="relative bg-brand hover:opacity-95 text-white font-extrabold text-xs sm:text-sm px-3 sm:px-4 py-2 rounded-xl shadow-md shadow-red-600/20 flex items-center gap-1.5 transition-all active:scale-95">
+              <i data-lucide="shopping-cart" class="w-4 h-4"></i>
+              <span class="hidden sm:inline" data-i18n="cart">السلة</span>
+              <span id="cart-badge" class="bg-gold text-slate-900 text-[10px] font-black min-w-[20px] h-5 px-1 rounded-full flex items-center justify-center">0</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Mobile Search Bar -->
+        <div class="mt-2.5 md:hidden relative">
+          <input id="search-input-mobile" type="text"
+            class="w-full bg-slate-100 focus:bg-white border border-slate-200/70 focus:border-brand rounded-2xl py-2 ps-9 pe-4 text-xs font-semibold outline-none transition-all"
+            placeholder="ابحث عن منتج، ماركة، أو قسم..." />
+          <i data-lucide="search" class="w-4 h-4 text-slate-400 absolute top-1/2 -translate-y-1/2 start-3 pointer-events-none"></i>
+        </div>
+      </div>
+    </header>
+
+    <!-- Main Storefront Content -->
+    <main class="flex-1 max-w-7xl w-full mx-auto px-3 sm:px-6 py-4 sm:py-6 space-y-6 sm:space-y-8">
+
+      <!-- Hero Banner Slider -->
+      <section id="hero-section" class="relative rounded-3xl overflow-hidden shadow-lg bg-slate-900 min-h-[200px] sm:min-h-[300px]">
+        <div id="hero-slides-container" class="relative w-full h-[210px] sm:h-[320px]"></div>
+        <div id="hero-dots" class="absolute bottom-3 left-1/2 -translate-x-1/2 z-20 flex items-center gap-1.5"></div>
+      </section>
+
+      <!-- Dedicated Ad Spaces Section -->
+      <section id="ads-section" class="hidden space-y-3">
+        <div class="flex items-center justify-between">
+          <h2 class="font-black text-base sm:text-lg text-ink flex items-center gap-2">
+            <i data-lucide="megaphone" class="w-5 h-5 text-brand"></i>
+            <span data-i18n="featuredAds">عروض وإعلانات ويلمرت</span>
+          </h2>
+        </div>
+        <div id="ads-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
+      </section>
+
+      <!-- Dynamic Categories Bar -->
+      <section class="space-y-3">
+        <div class="flex items-center justify-between">
+          <h2 class="font-black text-base sm:text-lg text-ink flex items-center gap-2">
+            <i data-lucide="layout-grid" class="w-5 h-5 text-fresh"></i>
+            <span data-i18n="shopByCategory">تصفح حسب القسم</span>
+          </h2>
+        </div>
+        <div id="categories-bar" class="flex items-center gap-2 overflow-x-auto no-scrollbar pb-1"></div>
+      </section>
+
+      <!-- Products Grid Section -->
+      <section class="space-y-4">
+        <div class="flex flex-wrap items-center justify-between gap-2">
+          <h2 id="products-heading" class="font-black text-lg sm:text-xl text-ink">جميع المنتجات</h2>
+          <div class="flex items-center gap-2">
+            <select id="sort-select"
+              class="bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs font-bold text-slate-700 outline-none focus:border-brand">
+              <option value="featured" data-i18n="sortFeatured">الأكثر تميزاً</option>
+              <option value="price-asc" data-i18n="sortPriceAsc">السعر: من الأقل للأعلى</option>
+              <option value="price-desc" data-i18n="sortPriceDesc">السعر: من الأعلى للأقل</option>
+            </select>
+          </div>
+        </div>
+        <div id="products-grid" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-5"></div>
+      </section>
+    </main>
+
+    <!-- Store Footer -->
+    <footer class="bg-slate-900 text-slate-300 mt-10">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 py-8 grid grid-cols-1 sm:grid-cols-3 gap-6 text-xs sm:text-sm">
+        <div class="space-y-2">
+          <div class="font-black text-lg text-white">Welmrt - ويلمرت</div>
+          <p class="text-slate-400 leading-relaxed" data-i18n="footerDesc">
+            متجر السوبر ماركت العصري الأول في محافظة حماة وريفها. جودة مضمونة، توصيل سريع، وأسعار منافسة بالدولار والليرة السورية.
+          </p>
+        </div>
+        <div class="space-y-2">
+          <div class="font-extrabold text-white" data-i18n="coverageTitle">مناطق التغطية</div>
+          <p id="footer-zones-text" class="text-slate-400 leading-relaxed"></p>
+        </div>
+        <div class="space-y-2">
+          <div class="font-extrabold text-white" data-i18n="contactTitle">تواصل معنا</div>
+          <p class="text-slate-400 flex items-center gap-2"><i data-lucide="phone" class="w-4 h-4 text-gold"></i> <span id="footer-phone" dir="ltr">+963 999 000 000</span></p>
+          <p class="text-slate-400 flex items-center gap-2"><i data-lucide="mail" class="w-4 h-4 text-gold"></i> <span id="footer-email">orders@welmrt.sy</span></p>
+        </div>
+      </div>
+      <div class="border-t border-slate-800 py-3 text-center text-[11px] text-slate-500">
+        © 2026 Welmrt - ويلمرت. جميع الحقوق محفوظة.
+      </div>
+    </footer>
+
+    <!-- Floating Welmrt AI Assistant Button -->
+    <button id="ai-chat-fab" type="button"
+      class="fixed bottom-5 end-5 z-40 bg-slate-900 hover:bg-brand text-white shadow-2xl rounded-full px-4 py-3 flex items-center gap-2 transition-all active:scale-95 border-2 border-gold">
+      <i data-lucide="bot" class="w-5 h-5 text-gold"></i>
+      <span class="font-extrabold text-xs sm:text-sm" data-i18n="aiAssistant">مساعد ويلمرت الذكي</span>
+    </button>
+  </div>
+  <!-- END VIEW 1: STOREFRONT -->
+
+
+  <!-- ======================================================================= -->
+  <!-- VIEW 2: FULL-SCREEN SEPARATE ADMIN DASHBOARD (لوحة التحكم المنفصلة)     -->
+  <!-- ======================================================================= -->
+  <div id="admin-view" class="hidden min-h-screen bg-slate-100 flex flex-col">
+    <!-- Admin Header -->
+    <header class="bg-slate-900 text-white px-4 sm:px-6 py-3.5 flex flex-wrap items-center justify-between gap-3 sticky top-0 z-30 shadow-md">
+      <div class="flex items-center gap-3">
+        <div class="w-9 h-9 rounded-xl bg-brand flex items-center justify-center font-black text-white shadow">W</div>
+        <div>
+          <h1 class="font-black text-sm sm:text-base leading-tight">لوحة إدارة Welmrt - ويلمرت</h1>
+          <p class="text-[11px] text-slate-400">تحكم شامل بالمنتجات، الطلبات، الفئات، الإعلانات والمبيعات</p>
+        </div>
+      </div>
+      <div class="flex items-center gap-2 sm:gap-3">
+        <!-- Live Firebase Cloud Sync Status Badge -->
+        <span id="firebase-status-badge" class="inline-flex items-center gap-1.5 bg-amber-500/20 border border-amber-400/40 text-amber-200 text-[11px] font-extrabold px-3 py-1.5 rounded-xl">
+          وضع محلي 🟡
+        </span>
+        <button id="exit-admin-btn" type="button"
+          class="bg-white/10 hover:bg-brand text-white font-extrabold text-xs px-3.5 py-2 rounded-xl flex items-center gap-1.5 transition-all">
+          <i data-lucide="store" class="w-4 h-4"></i>
+          <span>العودة للمتجر</span>
+        </button>
+      </div>
+    </header>
+
+    <!-- Admin Body -->
+    <div class="flex-1 flex flex-col lg:flex-row max-w-[1600px] w-full mx-auto">
+      <!-- Admin Navigation -->
+      <aside id="admin-nav" class="bg-white border-b lg:border-b-0 lg:border-e border-slate-200 lg:w-64 shrink-0 p-2.5 lg:p-4 flex lg:flex-col gap-1.5 overflow-x-auto no-scrollbar"></aside>
+
+      <!-- Admin Main Content -->
+      <main id="admin-main" class="flex-1 p-4 sm:p-6 overflow-y-auto"></main>
+    </div>
+  </div>
+  <!-- END VIEW 2: ADMIN DASHBOARD -->
+
+
+  <!-- ======================================================================= -->
+  <!-- VIEW 3: STANDALONE FULL-SCREEN SALES AUDIT VIEW (جرد المبيعات)          -->
+  <!-- ======================================================================= -->
+  <div id="sales-audit-view" class="hidden min-h-screen bg-slate-100 flex flex-col"></div>
+  <!-- END VIEW 3: SALES AUDIT VIEW -->
+
+
+  <!-- ======================================================================= -->
+  <!-- MODALS & DRAWERS                                                        -->
+  <!-- ======================================================================= -->
+
+  <!-- 1. Secret Admin Passcode Modal (Zero Hints) -->
+  <div id="passcode-modal" class="fixed inset-0 z-[100] hidden items-center justify-center bg-slate-900/70 backdrop-blur-sm p-4">
+    <div class="bg-white rounded-3xl max-w-xs w-full p-6 shadow-2xl space-y-4 animate-fade-up">
+      <div class="flex items-center justify-between">
+        <h3 class="font-black text-base text-ink flex items-center gap-2">
+          <i data-lucide="shield-check" class="w-5 h-5 text-brand"></i>
+          <span>رمز الدخول</span>
+        </h3>
+        <button type="button" onclick="closeModal('passcode-modal')" class="p-1.5 rounded-xl hover:bg-slate-100 text-slate-500">
+          <i data-lucide="x" class="w-4 h-4"></i>
+        </button>
+      </div>
+      <input id="admin-passcode-input" type="password" inputmode="numeric" autocomplete="off"
+        class="w-full text-center tracking-[0.4em] text-xl font-black bg-slate-100 border border-slate-200 focus:border-brand rounded-2xl py-3 px-4 outline-none"
+        placeholder="••••" />
+      <p id="passcode-error" class="hidden text-xs font-bold text-red-600 text-center">الرمز غير صحيح</p>
+      <button id="submit-passcode-btn" type="button"
+        class="w-full bg-slate-900 hover:bg-brand text-white font-extrabold py-3 rounded-2xl transition-colors">
+        دخول
+      </button>
+    </div>
+  </div>
+
+  <!-- 2. Product Detail Modal (Gallery + Optional Video + AR/EN Desc) -->
+  <div id="product-detail-modal" class="fixed inset-0 z-[90] hidden items-center justify-center bg-slate-900/70 backdrop-blur-sm p-3 sm:p-6 overflow-y-auto">
+    <div id="product-detail-content" class="bg-white rounded-3xl max-w-2xl w-full max-h-[92vh] overflow-y-auto shadow-2xl animate-fade-up"></div>
+  </div>
+
+  <!-- 3. Cart Drawer (With Smart Cart Companion) -->
+  <div id="cart-drawer" class="fixed inset-0 z-[85] hidden">
+    <div onclick="closeCartDrawer()" class="absolute inset-0 bg-slate-900/60 backdrop-blur-xs"></div>
+    <div class="absolute top-0 bottom-0 end-0 w-full max-w-md bg-white shadow-2xl flex flex-col animate-fade-up">
+      <div class="p-4 border-b border-slate-200 flex items-center justify-between bg-slate-50">
+        <h3 class="font-black text-base text-ink flex items-center gap-2">
+          <i data-lucide="shopping-bag" class="w-5 h-5 text-brand"></i>
+          <span data-i18n="yourCart">سلة التسوق</span>
+        </h3>
+        <button type="button" onclick="closeCartDrawer()" class="p-2 rounded-xl hover:bg-slate-200 text-slate-600">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <!-- Free Delivery Progress Bar (Hidden by default) -->
+      <div id="cart-companion-bar" class="hidden px-4 py-3 bg-emerald-50/70 border-b border-emerald-100"></div>
+
+      <!-- Cart Items -->
+      <div id="cart-items-list" class="flex-1 overflow-y-auto p-4 space-y-3"></div>
+
+      <!-- Smart Add-on Suggestions -->
+      <div id="cart-suggestions" class="px-4 py-2.5 bg-slate-50 border-t border-slate-200"></div>
+
+      <!-- Cart Footer -->
+      <div id="cart-footer" class="p-4 border-t border-slate-200 bg-white space-y-3"></div>
+    </div>
+  </div>
+
+  <!-- 4. Checkout Modal (GPS + Mandatory Sham Cash Receipt + Silent Dispatch) -->
+  <div id="checkout-modal" class="fixed inset-0 z-[95] hidden items-center justify-center bg-slate-900/75 backdrop-blur-sm p-2 sm:p-4 overflow-y-auto">
+    <div class="bg-white rounded-3xl max-w-2xl w-full max-h-[94vh] overflow-y-auto shadow-2xl animate-fade-up">
+      <div class="sticky top-0 z-10 bg-slate-900 text-white px-5 py-4 flex items-center justify-between rounded-t-3xl">
+        <h3 class="font-black text-base sm:text-lg flex items-center gap-2">
+          <i data-lucide="check-circle-2" class="w-5 h-5 text-gold"></i>
+          <span data-i18n="checkoutTitle">إتمام الطلب والتوصيل</span>
+        </h3>
+        <button type="button" onclick="closeModal('checkout-modal')" class="p-1.5 rounded-xl bg-white/10 hover:bg-brand text-white">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <form id="checkout-form" class="p-4 sm:p-6 space-y-5">
+        <!-- Customer Details -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+          <div>
+            <label class="block text-xs font-extrabold text-ink mb-1" data-i18n="fullNameLabel">الاسم الكامل *</label>
+            <input id="co-name" type="text" required
+              class="w-full bg-slate-50 border border-slate-200 focus:border-brand rounded-xl px-3.5 py-2.5 text-sm font-semibold outline-none" />
+          </div>
+          <div>
+            <label class="block text-xs font-extrabold text-ink mb-1" data-i18n="whatsappLabel">رقم الواتساب *</label>
+            <input id="co-whatsapp" type="tel" required dir="ltr" placeholder="+963 9XX XXX XXX"
+              class="w-full bg-slate-50 border border-slate-200 focus:border-brand rounded-xl px-3.5 py-2.5 text-sm font-semibold outline-none text-left" />
+          </div>
+          <div>
+            <label class="block text-xs font-extrabold text-ink mb-1" data-i18n="emailOptLabel">البريد الإلكتروني (اختياري)</label>
+            <input id="co-email" type="email" dir="ltr" placeholder="name@gmail.com"
+              class="w-full bg-slate-50 border border-slate-200 focus:border-brand rounded-xl px-3.5 py-2.5 text-sm font-semibold outline-none text-left" />
+          </div>
+          <div>
+            <label class="block text-xs font-extrabold text-ink mb-1" data-i18n="zoneLabel">منطقة التوصيل (حماة) *</label>
+            <select id="co-zone" required
+              class="w-full bg-slate-50 border border-slate-200 focus:border-brand rounded-xl px-3.5 py-2.5 text-sm font-bold outline-none"></select>
+          </div>
+        </div>
+
+        <!-- Mandatory Location Section (GPS OR Written Address) -->
+        <div class="bg-blue-50/70 border border-blue-200 rounded-2xl p-4 space-y-3">
+          <div class="flex flex-wrap items-center justify-between gap-2">
+            <div>
+              <h4 class="font-black text-sm text-ink flex items-center gap-1.5">
+                <i data-lucide="map-pin" class="w-4 h-4 text-brand"></i>
+                <span data-i18n="locationSectionTitle">تحديد الموقع للتوصيل (إلزامي)</span>
+              </h4>
+              <p class="text-[11px] font-semibold text-slate-600" data-i18n="locationRuleHint">يرجى تحديد موقعك عبر GPS أو كتابة العنوان بالتفصيل (أحدهما إلزامي).</p>
+            </div>
+            <button id="co-gps-btn" type="button"
+              class="bg-fresh hover:opacity-95 text-white font-extrabold text-xs px-4 py-2.5 rounded-xl shadow flex items-center gap-1.5 transition-all active:scale-95">
+              <i data-lucide="crosshair" class="w-4 h-4"></i>
+              <span data-i18n="gpsBtnLabel">تحديد موقعي على GPS</span>
+            </button>
+          </div>
+
+          <div id="co-gps-badge" class="hidden bg-emerald-100 border border-emerald-300 text-emerald-900 rounded-xl px-3 py-2 text-xs font-bold flex items-center justify-between gap-2">
+            <span id="co-gps-text" class="flex items-center gap-1.5"></span>
+            <button type="button" id="co-gps-clear" class="text-red-600 hover:underline text-[11px] font-extrabold">إزالة</button>
+          </div>
+
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1" data-i18n="writtenAddressLabel">أو اكتب عنوانك بالتفصيل (الحي، الشارع، البناء)</label>
+            <textarea id="co-address" rows="2"
+              class="w-full bg-white border border-slate-200 focus:border-brand rounded-xl px-3.5 py-2 text-xs sm:text-sm font-semibold outline-none"
+              placeholder="مثال: حماة - شارع العلمين - جانب صيدلية ..."></textarea>
+          </div>
+        </div>
+
+        <!-- Dynamic Payment Methods -->
+        <div class="space-y-3">
+          <h4 class="font-black text-sm text-ink flex items-center gap-1.5">
+            <i data-lucide="credit-card" class="w-4 h-4 text-brand"></i>
+            <span data-i18n="paymentMethodTitle">طريقة الدفع</span>
+          </h4>
+          <div id="co-payment-methods" class="grid grid-cols-1 sm:grid-cols-3 gap-2.5"></div>
+          <div id="co-payment-details"></div>
+        </div>
+
+        <!-- Coupon Code -->
+        <div class="flex gap-2">
+          <input id="co-coupon" type="text"
+            class="flex-1 bg-slate-50 border border-slate-200 focus:border-brand rounded-xl px-3.5 py-2 text-xs font-bold uppercase outline-none"
+            placeholder="كود الخصم (اختياري)..." />
+          <button id="co-apply-coupon" type="button"
+            class="bg-slate-900 hover:bg-brand text-white font-extrabold text-xs px-4 py-2 rounded-xl transition-colors">
+            تطبيق
+          </button>
+        </div>
+        <div id="co-coupon-msg" class="hidden text-xs font-bold"></div>
+
+        <!-- Order Summary -->
+        <div class="bg-slate-900 text-white rounded-2xl p-4 space-y-2 text-xs sm:text-sm">
+          <div class="flex justify-between text-slate-300">
+            <span data-i18n="subtotal">المجموع الفرعي</span>
+            <span id="co-sum-subtotal" class="font-bold"></span>
+          </div>
+          <div id="co-sum-discount-row" class="hidden flex justify-between text-emerald-400">
+            <span>الخصم</span>
+            <span id="co-sum-discount" class="font-bold"></span>
+          </div>
+          <div class="flex justify-between text-slate-300">
+            <span data-i18n="deliveryFee">أجور التوصيل</span>
+            <span id="co-sum-delivery" class="font-bold"></span>
+          </div>
+          <div class="flex justify-between items-center pt-2 border-t border-slate-700 font-black text-base text-gold">
+            <span data-i18n="grandTotal">الإجمالي النهائي</span>
+            <div id="co-sum-total" class="text-end"></div>
+          </div>
+        </div>
+
+        <button id="co-submit-btn" type="submit"
+          class="w-full bg-brand hover:opacity-95 text-white font-black text-base py-3.5 rounded-2xl shadow-lg shadow-red-600/25 flex items-center justify-center gap-2 transition-all active:scale-95">
+          <i data-lucide="check-check" class="w-5 h-5"></i>
+          <span data-i18n="confirmOrderBtn">تأكيد الطلب الآن</span>
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- 5. Digital Invoice & Thank You Modal -->
+  <div id="invoice-modal" class="fixed inset-0 z-[105] hidden items-center justify-center bg-slate-900/75 backdrop-blur-sm p-3 overflow-y-auto">
+    <div class="bg-white rounded-3xl max-w-lg w-full max-h-[92vh] overflow-y-auto shadow-2xl p-5 sm:p-6 space-y-4 animate-fade-up">
+      <div id="printable-invoice" class="space-y-4"></div>
+      <div class="no-print flex gap-2 pt-2">
+        <button type="button" onclick="window.print()"
+          class="flex-1 bg-slate-100 hover:bg-slate-200 text-ink font-extrabold text-xs py-3 rounded-xl flex items-center justify-center gap-1.5">
+          <i data-lucide="printer" class="w-4 h-4"></i> طباعة الفاتورة
+        </button>
+        <button type="button" onclick="closeModal('invoice-modal')"
+          class="flex-1 bg-brand hover:opacity-95 text-white font-extrabold text-xs py-3 rounded-xl">
+          إغلاق
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 6. AI Smart Budget Basket Modal -->
+  <div id="budget-modal" class="fixed inset-0 z-[92] hidden items-center justify-center bg-slate-900/75 backdrop-blur-sm p-3 overflow-y-auto">
+    <div class="bg-white rounded-3xl max-w-lg w-full max-h-[92vh] overflow-y-auto shadow-2xl p-5 sm:p-6 space-y-4 animate-fade-up">
+      <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+        <h3 class="font-black text-base sm:text-lg text-ink flex items-center gap-2">
+          <i data-lucide="sparkles" class="w-5 h-5 text-amber-500"></i>
+          <span data-i18n="smartBasket">سلة الميزانية الذكية (AI)</span>
+        </h3>
+        <button type="button" onclick="closeModal('budget-modal')" class="p-1.5 rounded-xl hover:bg-slate-100 text-slate-500">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+      <p class="text-xs text-slate-500">أدخل ميزانيتك وهدفك الشرائي، وسيقوم ذكاء ويلمرت بتجهيز أفضل سلة متوازنة من المنتجات المتوفرة حالياً.</p>
+      <div class="grid grid-cols-2 gap-3">
+        <div>
+          <label class="block text-xs font-bold text-ink mb-1">الميزانية</label>
+          <input id="ai-budget-amount" type="number" min="1" value="15"
+            class="w-full bg-slate-50 border border-slate-200 focus:border-brand rounded-xl px-3 py-2.5 text-sm font-black outline-none" />
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-ink mb-1">العملة</label>
+          <select id="ai-budget-currency" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-sm font-bold outline-none">
+            <option value="usd">دولار ($)</option>
+            <option value="syp">ليرة سورية (ل.س)</option>
+          </select>
+        </div>
+      </div>
+      <div>
+        <label class="block text-xs font-bold text-ink mb-1">هدف السلة (مثلاً: مونة أسبوعية، سهرة عائلية، منظفات البيت)</label>
+        <input id="ai-budget-goal" type="text" value="مونة أسبوعية متكاملة للعائلة"
+          class="w-full bg-slate-50 border border-slate-200 focus:border-brand rounded-xl px-3 py-2.5 text-sm font-semibold outline-none" />
+      </div>
+      <button id="ai-generate-basket-btn" type="button"
+        class="w-full bg-slate-900 hover:bg-brand text-white font-extrabold text-sm py-3 rounded-2xl flex items-center justify-center gap-2 transition-colors">
+        <i data-lucide="wand-2" class="w-4 h-4 text-gold"></i>
+        <span>جهّز لي السلة الذكية</span>
+      </button>
+      <div id="ai-budget-result" class="hidden space-y-3 pt-2 border-t border-slate-100"></div>
+    </div>
+  </div>
+
+  <!-- 7. Floating AI Assistant Chat Drawer -->
+  <div id="ai-chat-modal" class="fixed inset-0 z-[92] hidden items-end sm:items-center justify-end sm:justify-end bg-slate-900/40 backdrop-blur-xs p-0 sm:p-5">
+    <div class="bg-white w-full sm:max-w-md h-[82vh] sm:h-[600px] rounded-t-3xl sm:rounded-3xl shadow-2xl flex flex-col overflow-hidden animate-fade-up">
+      <div class="bg-slate-900 text-white px-4 py-3.5 flex items-center justify-between">
+        <div class="flex items-center gap-2.5">
+          <div class="w-9 h-9 rounded-xl bg-brand flex items-center justify-center">
+            <i data-lucide="bot" class="w-5 h-5 text-gold"></i>
+          </div>
+          <div>
+            <h3 class="font-black text-sm">مساعد ويلمرت الذكي</h3>
+            <p class="text-[10px] text-emerald-400 font-bold">متصل • يعرف كافة الأسعار والعروض</p>
+          </div>
+        </div>
+        <button type="button" onclick="closeModal('ai-chat-modal')" class="p-1.5 rounded-xl bg-white/10 hover:bg-brand text-white">
+          <i data-lucide="x" class="w-4 h-4"></i>
+        </button>
+      </div>
+      <div id="ai-chat-messages" class="flex-1 overflow-y-auto p-4 space-y-3 bg-slate-50"></div>
+      <form id="ai-chat-form" class="p-3 bg-white border-t border-slate-200 flex gap-2">
+        <input id="ai-chat-input" type="text" required
+          class="flex-1 bg-slate-100 focus:bg-white border border-slate-200 focus:border-brand rounded-xl px-3.5 py-2.5 text-xs sm:text-sm font-semibold outline-none"
+          placeholder="اسأل عن أي منتج، سعر، أو توصيل لحماة..." />
+        <button type="submit" class="bg-brand hover:opacity-95 text-white px-4 rounded-xl flex items-center justify-center">
+          <i data-lucide="send" class="w-4 h-4"></i>
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- 8. Receipt Preview Modal (For Admin viewing Sham Cash Receipt Image/PDF) -->
+  <div id="receipt-preview-modal" class="fixed inset-0 z-[110] hidden items-center justify-center bg-slate-900/80 backdrop-blur-sm p-3">
+    <div class="bg-white rounded-3xl max-w-2xl w-full max-h-[90vh] flex flex-col overflow-hidden shadow-2xl animate-fade-up">
+      <div class="px-5 py-3.5 bg-slate-900 text-white flex items-center justify-between">
+        <h3 class="font-black text-sm">معاينة إيصال شام كاش</h3>
+        <button type="button" onclick="closeModal('receipt-preview-modal')" class="p-1.5 rounded-xl bg-white/10 hover:bg-brand">
+          <i data-lucide="x" class="w-4 h-4"></i>
+        </button>
+      </div>
+      <div id="receipt-preview-body" class="flex-1 overflow-auto p-4 bg-slate-100 flex items-center justify-center min-h-[300px]"></div>
+      <div id="receipt-preview-footer" class="p-3 bg-white border-t border-slate-200 flex justify-end gap-2"></div>
+    </div>
+  </div>
+
+  <!-- 9. Custom Confirm Modal (Replaces browser confirm()) -->
+  <div id="confirm-modal" class="fixed inset-0 z-[115] hidden items-center justify-center bg-slate-900/70 backdrop-blur-sm p-4">
+    <div class="bg-white rounded-3xl max-w-sm w-full p-5 shadow-2xl space-y-4 animate-fade-up">
+      <h3 id="confirm-title" class="font-black text-base text-ink">تأكيد الإجراء</h3>
+      <p id="confirm-message" class="text-xs sm:text-sm text-slate-600 font-semibold leading-relaxed"></p>
+      <div class="flex gap-2 pt-1">
+        <button id="confirm-yes-btn" type="button" class="flex-1 bg-brand hover:opacity-95 text-white font-extrabold text-xs py-2.5 rounded-xl">تأكيد</button>
+        <button id="confirm-no-btn" type="button" class="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 font-extrabold text-xs py-2.5 rounded-xl">إلغاء</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ======================================================================= -->
+  <!-- APPLICATION JAVASCRIPT (FIREBASE v10.12.2 MODULAR SDK)                  -->
+  <!-- ======================================================================= -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+    import {
+      getFirestore,
+      doc,
+      setDoc,
+      getDoc,
+      getDocs,
+      deleteDoc,
+      collection,
+      onSnapshot
+    } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+    // =========================================================================
+    // 1. USER'S EXACT FIREBASE CONFIGURATION
+    // =========================================================================
+    const firebaseConfig = {
+      apiKey: "AIzaSyDztcE5D2wb98Osd_h3aFVBoVJ6GrVi5FM",
+      authDomain: "welmrt.firebaseapp.com",
+      projectId: "welmrt",
+      storageBucket: "welmrt.firebasestorage.app",
+      messagingSenderId: "349565682307",
+      appId: "1:349565682307:web:3753ecccc0c7283cca11b6"
+    };
+
+    // =========================================================================
+    // 2. DEFAULT WELMRT LOGO SVG & INITIAL SEED DATA (22 PRODUCTS, 8 CATEGORIES)
+    // =========================================================================
+    const DEFAULT_LOGO_SVG = `
+      <svg viewBox="0 0 200 200" class="w-full h-full" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="100" cy="100" r="94" fill="#FFFFFF" stroke="#D91E18" stroke-width="10"/>
+        <path d="M72 64 L88 95 L104 78 L119 95 L134 66" fill="none" stroke="#F5C518" stroke-width="11" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M98 76 C90 52, 108 32, 122 36 C124 54, 110 70, 98 76 Z" fill="#3B9E29"/>
+        <path d="M104 78 C118 58, 138 56, 142 66 C134 78, 118 82, 104 78 Z" fill="#2E7D20"/>
+        <circle cx="91" cy="106" r="6" fill="none" stroke="#D91E18" stroke-width="4"/>
+        <circle cx="116" cy="106" r="6" fill="none" stroke="#D91E18" stroke-width="4"/>
+        <text x="100" y="138" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-weight="900" font-size="34" fill="#D91E18">Welmrt</text>
+        <text x="100" y="164" text-anchor="middle" font-family="Cairo, sans-serif" font-weight="900" font-size="24" fill="#D91E18">ويلمرت</text>
+        <path d="M62 174 Q100 164 138 174" fill="none" stroke="#3B9E29" stroke-width="4.5" stroke-linecap="round"/>
+      </svg>
+    `;
+
+    const DEFAULT_CATEGORIES = [
+      { id: 'food', nameAr: 'غذائيات', nameEn: 'Groceries', icon: '🛒' },
+      { id: 'detergents', nameAr: 'منظفات', nameEn: 'Detergents', icon: '🫧' },
+      { id: 'beauty', nameAr: 'تجميل وعناية', nameEn: 'Beauty & Care', icon: '✨' },
+      { id: 'beverages', nameAr: 'مشروبات', nameEn: 'Beverages', icon: '🥤' },
+      { id: 'spices', nameAr: 'بهارات وتوابل', nameEn: 'Spices', icon: '🌶️' },
+      { id: 'snacks', nameAr: 'شيبس وتسالي', nameEn: 'Chips & Snacks', icon: '🍿' },
+      { id: 'pastries', nameAr: 'فطائر وبرك', nameEn: 'Pastries & Borek', icon: '🥐' },
+      { id: 'frozen', nameAr: 'دجاج ومجمدات', nameEn: 'Frozen Chicken', icon: '🍗' }
+    ];
+
+    const DEFAULT_PRODUCTS = [
+      { id: 'p1', categoryId: 'food', nameAr: 'زيت زيتون حماة بكر ممتاز 1 لتر', nameEn: 'Hama Extra Virgin Olive Oil 1L', priceUsd: 6.50, costUsd: 5.00, stock: 30, emoji: '🫒', descAr: 'زيت زيتون بلدي عصرة أولى على البارد من بساتين حماة.', descEn: 'Cold-pressed first harvest extra virgin olive oil from Hama.', images: [], videoId: '' },
+      { id: 'p2', categoryId: 'food', nameAr: 'أرز بسمتي هندي حبة طويلة 5 كغ', nameEn: 'Long Grain Basmati Rice 5kg', priceUsd: 8.20, costUsd: 6.60, stock: 25, emoji: '🍚', descAr: 'أرز بسمتي فاخر نثري مثالي للكبسة والمقلوبة.', descEn: 'Premium long-grain basmati rice ideal for family meals.', images: [], videoId: '' },
+      { id: 'p3', categoryId: 'food', nameAr: 'سكر أبيض ناعم 2 كغ', nameEn: 'Fine White Sugar 2kg', priceUsd: 2.10, costUsd: 1.65, stock: 45, emoji: '🍬', descAr: 'سكر أبيض نقي عالي الجودة للحلويات والمشروبات.', descEn: 'Pure fine white sugar for daily use.', images: [], videoId: '' },
+      { id: 'p4', categoryId: 'food', nameAr: 'معكرونة إيطالية سباغيتي 500 غ', nameEn: 'Italian Spaghetti Pasta 500g', priceUsd: 1.15, costUsd: 0.80, stock: 60, emoji: '🍝', descAr: 'معكرونة قمح قاسي سريعة التحضير.', descEn: 'Durum wheat spaghetti pasta.', images: [], videoId: '' },
+      { id: 'p5', categoryId: 'food', nameAr: 'سمنة بلدية فاخرة 1 كغ', nameEn: 'Premium Traditional Ghee 1kg', priceUsd: 7.40, costUsd: 5.80, stock: 18, emoji: '🧈', descAr: 'سمنة طبيعية بنكهة أصيلة للطبخ والحلويات الشرقية.', descEn: 'Authentic rich ghee for cooking and oriental sweets.', images: [], videoId: '' },
+      { id: 'p6', categoryId: 'food', nameAr: 'رب بندورة طبيعي مركز 800 غ', nameEn: 'Concentrated Tomato Paste 800g', priceUsd: 1.75, costUsd: 1.25, stock: 40, emoji: '🍅', descAr: 'بندورة طازجة مركزة بدون مواد حافظة.', descEn: 'Fresh concentrated tomato paste, preservative-free.', images: [], videoId: '' },
+      { id: 'p7', categoryId: 'detergents', nameAr: 'مسحوق غسيل أوتوماتيك 3 كغ', nameEn: 'Automatic Laundry Powder 3kg', priceUsd: 5.40, costUsd: 4.10, stock: 22, emoji: '🧺', descAr: 'نظافة فائقة وإزالة أصعب البقع مع عطر يدوم طويلاً.', descEn: 'Deep stain removal with long-lasting fresh scent.', images: [], videoId: '' },
+      { id: 'p8', categoryId: 'detergents', nameAr: 'سائل جلي برائحة الليمون 1 لتر', nameEn: 'Lemon Dishwashing Liquid 1L', priceUsd: 1.80, costUsd: 1.25, stock: 40, emoji: '🍋', descAr: 'قوة فائقة على الدهون ولطيف على اليدين.', descEn: 'Tough on grease, gentle on hands.', images: [], videoId: '' },
+      { id: 'p9', categoryId: 'detergents', nameAr: 'معطر ومنعم ملابس برائحة اللافندر 2 لتر', nameEn: 'Lavender Fabric Softener 2L', priceUsd: 2.85, costUsd: 2.00, stock: 28, emoji: '🪻', descAr: 'نعومة فائقة وعطر منعش يدوم لأسابيع.', descEn: 'Ultra softness and fresh scent for weeks.', images: [], videoId: '' },
+      { id: 'p10', categoryId: 'beauty', nameAr: 'شامبو مغذي بالكيراتين 400 مل', nameEn: 'Keratin Nourishing Shampoo 400ml', priceUsd: 3.75, costUsd: 2.60, stock: 18, emoji: '🧴', descAr: 'يمنح الشعر لمعاناً ونعومة فائقة ويقلل التساقط.', descEn: 'Smooths and strengthens hair with natural keratin.', images: [], videoId: '' },
+      { id: 'p11', categoryId: 'beauty', nameAr: 'كريم ترطيب يومي باللوز 200 مل', nameEn: 'Daily Almond Moisturizing Cream 200ml', priceUsd: 2.90, costUsd: 1.95, stock: 24, emoji: '🌸', descAr: 'ترطيب عميق للبشرة الجافة والحساسة طوال اليوم.', descEn: 'Deep hydration for soft and glowing skin.', images: [], videoId: '' },
+      { id: 'p12', categoryId: 'beauty', nameAr: 'غسول وجه لطيف بالصبار 150 مل', nameEn: 'Aloe Vera Gentle Face Wash 150ml', priceUsd: 3.10, costUsd: 2.15, stock: 20, emoji: '🌿', descAr: 'ينظف المسام بعمق ويحافظ على نضارة البشرة.', descEn: 'Deep pore cleansing while maintaining skin glow.', images: [], videoId: '' },
+      { id: 'p13', categoryId: 'beverages', nameAr: 'عصير برتقال طبيعي 100% 1 لتر', nameEn: '100% Natural Orange Juice 1L', priceUsd: 1.60, costUsd: 1.10, stock: 35, emoji: '🍊', descAr: 'عصير طبيعي بدون سكر مضاف غني بفيتامين C.', descEn: 'No added sugar, rich in Vitamin C.', images: [], videoId: '' },
+      { id: 'p14', categoryId: 'beverages', nameAr: 'قهوة عربية بالهال محمصة 250 غ', nameEn: 'Syrian Coffee with Cardamom 250g', priceUsd: 3.20, costUsd: 2.30, stock: 28, emoji: '☕', descAr: 'بن برازيلي فاخر محمص يومياً مع هال حب مطحون.', descEn: 'Freshly roasted coffee blended with aromatic cardamom.', images: [], videoId: '' },
+      { id: 'p15', categoryId: 'beverages', nameAr: 'شاي سيلاني فاخر 500 غ', nameEn: 'Premium Ceylon Black Tea 500g', priceUsd: 4.10, costUsd: 3.00, stock: 30, emoji: '🫖', descAr: 'أوراق شاي سيلاني منتقاة لنكهة غنية ولون مثالي.', descEn: 'Selected Ceylon tea leaves for rich aroma.', images: [], videoId: '' },
+      { id: 'p16', categoryId: 'spices', nameAr: 'سبع بهارات سورية أصلية 150 غ', nameEn: 'Authentic Syrian 7-Spices 150g', priceUsd: 1.90, costUsd: 1.20, stock: 32, emoji: '🌶️', descAr: 'خلطة بهارات فاخرة مطحونة طازجاً للمشاوي والطبخ.', descEn: 'Freshly ground aromatic 7-spice blend.', images: [], videoId: '' },
+      { id: 'p17', categoryId: 'spices', nameAr: 'زعتر حلبي بالسمسم والسماق 500 غ', nameEn: 'Aleppo Zaatar with Sesame 500g', priceUsd: 2.50, costUsd: 1.70, stock: 26, emoji: '🌿', descAr: 'زعتر بلدي غني بالسمسم المحمص والسماق الطبيعي.', descEn: 'Traditional thyme mix with roasted sesame and sumac.', images: [], videoId: '' },
+      { id: 'p18', categoryId: 'snacks', nameAr: 'شيبس بطاطا طبيعي عائلي بالملح', nameEn: 'Family Salted Potato Chips', priceUsd: 1.20, costUsd: 0.80, stock: 50, emoji: '🥔', descAr: 'رقائق بطاطا مقرمشة ومقلية بزيت نباتي صافي.', descEn: 'Crispy golden salted potato chips.', images: [], videoId: '' },
+      { id: 'p19', categoryId: 'snacks', nameAr: 'مكسرات مشكلة محمصة 250 غ', nameEn: 'Roasted Mixed Nuts 250g', priceUsd: 4.50, costUsd: 3.30, stock: 20, emoji: '🥜', descAr: 'كاجو ولوز وفستق حلبي محمص ومملح بعناية.', descEn: 'Premium roasted cashews, almonds, and pistachios.', images: [], videoId: '' },
+      { id: 'p20', categoryId: 'pastries', nameAr: 'برك جبنة مقرمشة جاهزة للقلي 12 قطعة', nameEn: 'Crispy Cheese Borek 12 pcs', priceUsd: 3.40, costUsd: 2.30, stock: 16, emoji: '🥐', descAr: 'محشوة بجبنة العكاوي والقشقوان مع حبة البركة.', descEn: 'Stuffed with Akkawi & Kashkaval cheese, ready to fry.', images: [], videoId: '' },
+      { id: 'p21', categoryId: 'pastries', nameAr: 'فطائر سبانخ وزيت زيتون 10 قطع', nameEn: 'Spinach & Olive Oil Fatayer 10 pcs', priceUsd: 3.10, costUsd: 2.10, stock: 15, emoji: '🥟', descAr: 'عجينة هشة محشوة بالسبانخ الطازج والرمان وزيت الزيتون.', descEn: 'Flaky pastry filled with fresh spinach and olive oil.', images: [], videoId: '' },
+      { id: 'p22', categoryId: 'frozen', nameAr: 'صدور دجاج مجمدة منظفة 1 كغ', nameEn: 'Frozen Chicken Breast Fillet 1kg', priceUsd: 4.90, costUsd: 3.80, stock: 20, emoji: '🍗', descAr: 'دجاج طازج مجمد سريعاً، حلال 100% وخالي من العظم.', descEn: '100% Halal boneless skinless chicken breast.', images: [], videoId: '' }
+    ];
+
+    const DEFAULT_SETTINGS = {
+      storeName: 'Welmrt - ويلمرت',
+      phone: '+963 999 000 000',
+      email: 'orders@welmrt.sy',
+      exchangeRate: 14500,
+      freeDeliveryEnabled: false,
+      freeDeliveryThreshold: 25,
+      brandColor: '#D91E18',
+      freshColor: '#3B9E29',
+      goldColor: '#F5C518',
+      logoDataUrl: '',
+      adminPasscode: '1234',
+      payments: {
+        cod: { enabled: true },
+        shamCash: {
+          enabled: true,
+          accountId: 'WELMRT-HAMA-9901',
+          barcodeDataUrl: ''
+        },
+        externalBank: {
+          enabled: true,
+          bankDetails: 'بنك الشام / المصرف التجاري — رقم الحساب: 0123-456789-001 — باسم: شركة ويلمرت التجارية'
+        }
+      },
+      deliveryZones: [
+        { id: 'z1', nameAr: 'مدينة حماة (المركز والأحياء)', nameEn: 'Hama City Center', feeUsd: 1.00 },
+        { id: 'z2', nameAr: 'سلمية', nameEn: 'Salamiyah', feeUsd: 2.50 },
+        { id: 'z3', nameAr: 'مصياف', nameEn: 'Masyaf', feeUsd: 2.50 },
+        { id: 'z4', nameAr: 'محردة', nameEn: 'Mahardah', feeUsd: 2.00 },
+        { id: 'z5', nameAr: 'السقيلبية', nameEn: 'Al-Suqaylabiyah', feeUsd: 3.00 },
+        { id: 'z6', nameAr: 'ريف حماة العام', nameEn: 'Hama Countryside', feeUsd: 2.25 }
+      ],
+      webhooks: {
+        companyWhatsappUrl: '',
+        companyGmailUrl: '',
+        customerCompleteUrl: ''
+      }
+    };
+
+    const DEFAULT_COUPONS = [
+      { id: 'WELMRT10', code: 'WELMRT10', discountPercent: 10, active: true },
+      { id: 'HAMA5', code: 'HAMA5', discountPercent: 5, active: true }
+    ];
+
+    const DEFAULT_BANNERS = [
+      {
+        id: 'b1',
+        titleAr: 'مرحباً بكم في Welmrt - ويلمرت حماة',
+        titleEn: 'Welcome to Welmrt Hama',
+        subtitleAr: 'كل احتياجات بيتك من غذائيات ومنظفات وطازج.. تصلك لباب بيتك في حماة وريفها!',
+        subtitleEn: 'All your groceries, detergents & fresh food delivered right to your door in Hama!',
+        mediaDataUrl: '',
+        videoId: '',
+        mediaType: 'none',
+        bgGradient: 'from-[#D91E18] via-red-700 to-slate-900',
+        active: true
+      },
+      {
+        id: 'b2',
+        titleAr: 'سلة الميزانية الذكية بالذكاء الاصطناعي',
+        titleEn: 'AI Smart Budget Basket',
+        subtitleAr: 'حدد ميزانيتك بالدولار أو الليرة ودعنا نجهز لك أفضل سلة موفّرة بضغطة زر.',
+        subtitleEn: 'Set your budget in USD or SYP and let AI build the smartest cart in one click.',
+        mediaDataUrl: '',
+        videoId: '',
+        mediaType: 'none',
+        bgGradient: 'from-[#3B9E29] via-emerald-700 to-slate-900',
+        active: true
+      }
+    ];
+
+    const DEFAULT_ADS = [
+      {
+        id: 'ad1',
+        titleAr: 'عرض التوفير الأسبوعي في حماة',
+        titleEn: 'Weekly Hama Saver Offer',
+        descAr: 'استخدم كود WELMRT10 واحصل على خصم 10% على فاتورتك الأولى!',
+        descEn: 'Use code WELMRT10 for 10% off your first order!',
+        mediaDataUrl: '',
+        videoId: '',
+        mediaType: 'none',
+        active: true
+      }
+    ];
+
+    const I18N = {
+      ar: {
+        hamaCoverage: 'حماة وريفها',
+        exchangeRateLabel: 'سعر الصرف:',
+        storeTagline: 'سوبر ماركت حماة المتكامل',
+        dualLabel: 'مزدوج',
+        smartBasket: 'سلة الميزانية الذكية',
+        cart: 'السلة',
+        featuredAds: 'عروض وإعلانات ويلمرت',
+        shopByCategory: 'تصفح حسب القسم',
+        sortFeatured: 'الأكثر تميزاً',
+        sortPriceAsc: 'السعر: من الأقل للأعلى',
+        sortPriceDesc: 'السعر: من الأعلى للأقل',
+        allProducts: 'جميع المنتجات',
+        addToCart: 'أضف للسلة',
+        yourCart: 'سلة التسوق',
+        checkoutTitle: 'إتمام الطلب والتوصيل',
+        fullNameLabel: 'الاسم الكامل *',
+        whatsappLabel: 'رقم الواتساب *',
+        emailOptLabel: 'البريد الإلكتروني (اختياري)',
+        zoneLabel: 'منطقة التوصيل (حماة) *',
+        locationSectionTitle: 'تحديد الموقع للتوصيل (إلزامي)',
+        locationRuleHint: 'يرجى تحديد موقعك عبر GPS أو كتابة العنوان بالتفصيل (أحدهما إلزامي).',
+        gpsBtnLabel: 'تحديد موقعي على GPS',
+        writtenAddressLabel: 'أو اكتب عنوانك بالتفصيل (الحي، الشارع، البناء)',
+        paymentMethodTitle: 'طريقة الدفع',
+        subtotal: 'المجموع الفرعي',
+        deliveryFee: 'أجور التوصيل',
+        grandTotal: 'الإجمالي النهائي',
+        confirmOrderBtn: 'تأكيد الطلب الآن',
+        aiAssistant: 'مساعد ويلمرت الذكي',
+        footerDesc: 'متجر السوبر ماركت العصري الأول في محافظة حماة وريفها. جودة مضمونة، توصيل سريع، وأسعار منافسة بالدولار والليرة السورية.',
+        coverageTitle: 'مناطق التغطية',
+        contactTitle: 'تواصل معنا',
+        free: 'مجاني',
+        sypUnit: 'ل.س'
+      },
+      en: {
+        hamaCoverage: 'Hama & Countryside',
+        exchangeRateLabel: 'Exchange Rate:',
+        storeTagline: 'Hama Complete Supermarket',
+        dualLabel: 'Dual',
+        smartBasket: 'AI Budget Basket',
+        cart: 'Cart',
+        featuredAds: 'Welmrt Offers & Ads',
+        shopByCategory: 'Shop by Category',
+        sortFeatured: 'Featured',
+        sortPriceAsc: 'Price: Low to High',
+        sortPriceDesc: 'Price: High to Low',
+        allProducts: 'All Products',
+        addToCart: 'Add to Cart',
+        yourCart: 'Shopping Cart',
+        checkoutTitle: 'Checkout & Delivery',
+        fullNameLabel: 'Full Name *',
+        whatsappLabel: 'WhatsApp Number *',
+        emailOptLabel: 'Email (Optional)',
+        zoneLabel: 'Delivery Area (Hama) *',
+        locationSectionTitle: 'Delivery Location (Mandatory)',
+        locationRuleHint: 'Please capture your GPS location OR type your full address (at least one is required).',
+        gpsBtnLabel: 'Locate Me on GPS',
+        writtenAddressLabel: 'Or type your detailed address (District, Street, Building)',
+        paymentMethodTitle: 'Payment Method',
+        subtotal: 'Subtotal',
+        deliveryFee: 'Delivery Fee',
+        grandTotal: 'Grand Total',
+        confirmOrderBtn: 'Confirm Order Now',
+        aiAssistant: 'Welmrt AI Assistant',
+        footerDesc: 'The premier modern supermarket in Hama Governorate & Countryside. Guaranteed quality, fast delivery, dual USD & SYP pricing.',
+        coverageTitle: 'Delivery Areas',
+        contactTitle: 'Contact Us',
+        free: 'FREE',
+        sypUnit: 'SYP'
+      }
+    };
+
+    // =========================================================================
+    // 3. SMART CLIENT-SIDE IMAGE COMPRESSION (MAX 700px, JPEG 0.72) + INDEXEDDB FOR VIDEOS
+    // =========================================================================
+    function compressImageToDataUrl(file, maxDim = 700, quality = 0.72) {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onerror = () => reject(new Error('Failed to read image'));
+        reader.onload = (ev) => {
+          const img = new Image();
+          img.onerror = () => reject(new Error('Invalid image'));
+          img.onload = () => {
+            let w = img.width;
+            let h = img.height;
+            if (w > maxDim || h > maxDim) {
+              if (w >= h) {
+                h = Math.round((h * maxDim) / w);
+                w = maxDim;
+              } else {
+                w = Math.round((w * maxDim) / h);
+                h = maxDim;
+              }
+            }
+            const canvas = document.createElement('canvas');
+            canvas.width = w;
+            canvas.height = h;
+            const ctx = canvas.getContext('2d');
+            ctx.fillStyle = '#FFFFFF';
+            ctx.fillRect(0, 0, w, h);
+            ctx.drawImage(img, 0, 0, w, h);
+            resolve(canvas.toDataURL('image/jpeg', quality));
+          };
+          img.src = ev.target.result;
+        };
+        reader.readAsDataURL(file);
+      });
+    }
+
+    function readFileAsDataUrl(file) {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result);
+        reader.onerror = () => reject(new Error('File read error'));
+        reader.readAsDataURL(file);
+      });
+    }
+
+    // IndexedDB specifically for large Videos (so Firestore 1MB limit is never exceeded)
+    const VIDEO_DB_NAME = 'WelmrtVideoDB_v1';
+    const VIDEO_STORE = 'videos';
+    let videoDbPromise = null;
+    const videoUrlCache = new Map();
+
+    function openVideoDB() {
+      if (videoDbPromise) return videoDbPromise;
+      videoDbPromise = new Promise((resolve, reject) => {
+        const req = indexedDB.open(VIDEO_DB_NAME, 1);
+        req.onupgradeneeded = (e) => {
+          const db = e.target.result;
+          if (!db.objectStoreNames.contains(VIDEO_STORE)) {
+            db.createObjectStore(VIDEO_STORE, { keyPath: 'id' });
+          }
+        };
+        req.onsuccess = () => resolve(req.result);
+        req.onerror = () => reject(req.error);
+      });
+      return videoDbPromise;
+    }
+
+    async function saveLocalVideo(file) {
+      const db = await openVideoDB();
+      const id = 'vid_' + Date.now() + '_' + Math.random().toString(36).slice(2, 7);
+      await new Promise((resolve, reject) => {
+        const tx = db.transaction(VIDEO_STORE, 'readwrite');
+        tx.objectStore(VIDEO_STORE).put({ id, blob: file, mimeType: file.type, createdAt: Date.now() });
+        tx.oncomplete = resolve;
+        tx.onerror = () => reject(tx.error);
+      });
+      const url = URL.createObjectURL(file);
+      videoUrlCache.set(id, url);
+      return id;
+    }
+
+    async function getLocalVideoUrl(id) {
+      if (!id) return '';
+      if (videoUrlCache.has(id)) return videoUrlCache.get(id);
+      try {
+        const db = await openVideoDB();
+        const rec = await new Promise((resolve, reject) => {
+          const tx = db.transaction(VIDEO_STORE, 'readonly');
+          const req = tx.objectStore(VIDEO_STORE).get(id);
+          req.onsuccess = () => resolve(req.result || null);
+          req.onerror = () => reject(req.error);
+        });
+        if (!rec || !rec.blob) return '';
+        const url = URL.createObjectURL(rec.blob);
+        videoUrlCache.set(id, url);
+        return url;
+      } catch {
+        return '';
+      }
+    }
+
+    async function hydrateLocalVideos(root = document) {
+      const nodes = root.querySelectorAll('video[data-video-id]');
+      for (const el of nodes) {
+        const id = el.getAttribute('data-video-id');
+        if (!id) continue;
+        const url = await getLocalVideoUrl(id);
+        if (url && el.src !== url) el.src = url;
+      }
+    }
+
+    // =========================================================================
+    // 4. APPLICATION STATE & REAL-TIME CLOUD FIRESTORE SYNC
+    // =========================================================================
+    function getTodayDateStr() {
+      const d = new Date();
+      return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+    }
+
+    function formatDateOffset(daysOffset) {
+      const d = new Date();
+      d.setDate(d.getDate() + daysOffset);
+      return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+    }
+
+    const state = {
+      lang: 'ar',
+      currencyMode: 'dual', // 'syp' | 'usd' | 'dual'
+      selectedCategory: 'all',
+      searchQuery: '',
+      sortBy: 'featured',
+      heroIndex: 0,
+      firebaseConnected: false,
+
+      settings: structuredClone(DEFAULT_SETTINGS),
+      categories: structuredClone(DEFAULT_CATEGORIES),
+      products: structuredClone(DEFAULT_PRODUCTS),
+      banners: structuredClone(DEFAULT_BANNERS),
+      ads: structuredClone(DEFAULT_ADS),
+      coupons: structuredClone(DEFAULT_COUPONS),
+      orders: [], // Active orders (welmrt_orders)
+      sales: [],  // Completed invoices (welmrt_sales)
+      cart: [],
+
+      // Checkout ephemeral state
+      checkoutGps: null,
+      checkoutPaymentMethod: 'cod',
+      checkoutReceiptFile: null,
+      checkoutCoupon: null,
+
+      // AI state
+      aiMessages: [
+        { role: 'bot', text: 'أهلاً بك في Welmrt - ويلمرت حماة! 🛒 اسألني عن أي منتج، سعر بالدولار أو الليرة السورية، أو مناطق التوصيل.' }
+      ],
+      lastSmartBasket: [],
+
+      // Admin state
+      isAdminView: false,
+      activeAdminTab: 'overview',
+      editingProductId: null,
+      editingCategoryId: null,
+
+      // Standalone Sales Audit View state
+      isSalesAuditView: false,
+      salesFilterOpen: false,
+      salesFilterMode: 'today',
+      salesFilterSingleDate: getTodayDateStr(),
+      salesFilterFromDate: getTodayDateStr(),
+      salesFilterToDate: getTodayDateStr()
+    };
+
+    let db = null;
+
+    function updateFirebaseStatusBadge() {
+      const badge = document.getElementById('firebase-status-badge');
+      if (!badge) return;
+      if (state.firebaseConnected) {
+        badge.className = 'inline-flex items-center gap-1.5 bg-emerald-500/20 border border-emerald-400/40 text-emerald-200 text-[11px] font-extrabold px-3 py-1.5 rounded-xl';
+        badge.textContent = 'متصل بـ Firebase السحابي 🟢';
+      } else {
+        badge.className = 'inline-flex items-center gap-1.5 bg-amber-500/20 border border-amber-400/40 text-amber-200 text-[11px] font-extrabold px-3 py-1.5 rounded-xl';
+        badge.textContent = 'وضع محلي 🟡';
+      }
+    }
+
+    function refreshActiveView() {
+      if (state.isSalesAuditView) {
+        renderSalesAuditScreen();
+      } else if (state.isAdminView) {
+        renderAdminNav();
+        renderAdminMain();
+      } else {
+        renderAllStorefront();
+      }
+    }
+
+    async function initCloudFirestore() {
+      try {
+        const app = initializeApp(firebaseConfig);
+        db = getFirestore(app);
+
+        // 1. Seed initial data ONLY if Firestore collections are empty on first load
+        const settingsRef = doc(db, 'welmrt_settings', 'main');
+        const settingsSnap = await getDoc(settingsRef);
+        if (!settingsSnap.exists()) {
+          await setDoc(settingsRef, state.settings);
+        }
+
+        const catSnap = await getDocs(collection(db, 'welmrt_categories'));
+        if (catSnap.empty) {
+          for (const c of DEFAULT_CATEGORIES) {
+            await setDoc(doc(db, 'welmrt_categories', c.id), c);
+          }
+        }
+
+        const prodSnap = await getDocs(collection(db, 'welmrt_products'));
+        if (prodSnap.empty) {
+          for (const p of DEFAULT_PRODUCTS) {
+            await setDoc(doc(db, 'welmrt_products', p.id), p);
+          }
+        }
+
+        const banSnap = await getDocs(collection(db, 'welmrt_banners'));
+        if (banSnap.empty) {
+          for (const b of DEFAULT_BANNERS) {
+            await setDoc(doc(db, 'welmrt_banners', b.id), b);
+          }
+        }
+
+        const adSnap = await getDocs(collection(db, 'welmrt_ads'));
+        if (adSnap.empty) {
+          for (const a of DEFAULT_ADS) {
+            await setDoc(doc(db, 'welmrt_ads', a.id), a);
+          }
+        }
+
+        const coupSnap = await getDocs(collection(db, 'welmrt_coupons'));
+        if (coupSnap.empty) {
+          for (const cp of DEFAULT_COUPONS) {
+            await setDoc(doc(db, 'welmrt_coupons', cp.id), cp);
+          }
+        }
+
+        // 2. Real-time listeners (onSnapshot) for all collections
+        onSnapshot(settingsRef, (snap) => {
+          state.firebaseConnected = true;
+          updateFirebaseStatusBadge();
+          if (snap.exists()) {
+            state.settings = deepMerge(structuredClone(DEFAULT_SETTINGS), snap.data());
+            refreshActiveView();
+          }
+        }, () => {
+          state.firebaseConnected = false;
+          updateFirebaseStatusBadge();
+        });
+
+        onSnapshot(collection(db, 'welmrt_categories'), (snap) => {
+          const list = [];
+          snap.forEach(d => list.push(d.data()));
+          if (list.length) state.categories = list;
+          refreshActiveView();
+        });
+
+        onSnapshot(collection(db, 'welmrt_products'), (snap) => {
+          const list = [];
+          snap.forEach(d => list.push(d.data()));
+          state.products = list;
+          refreshActiveView();
+        });
+
+        onSnapshot(collection(db, 'welmrt_banners'), (snap) => {
+          const list = [];
+          snap.forEach(d => list.push(d.data()));
+          state.banners = list;
+          refreshActiveView();
+        });
+
+        onSnapshot(collection(db, 'welmrt_ads'), (snap) => {
+          const list = [];
+          snap.forEach(d => list.push(d.data()));
+          state.ads = list;
+          refreshActiveView();
+        });
+
+        onSnapshot(collection(db, 'welmrt_coupons'), (snap) => {
+          const list = [];
+          snap.forEach(d => list.push(d.data()));
+          state.coupons = list;
+          refreshActiveView();
+        });
+
+        onSnapshot(collection(db, 'welmrt_orders'), (snap) => {
+          const list = [];
+          snap.forEach(d => list.push(d.data()));
+          list.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+          state.orders = list;
+          refreshActiveView();
+        });
+
+        onSnapshot(collection(db, 'welmrt_sales'), (snap) => {
+          const list = [];
+          snap.forEach(d => list.push(d.data()));
+          list.sort((a, b) => (b.completedAt || b.createdAt || 0) - (a.completedAt || a.createdAt || 0));
+          state.sales = list;
+          refreshActiveView();
+        });
+
+        state.firebaseConnected = true;
+        updateFirebaseStatusBadge();
+      } catch (err) {
+        console.warn('Firebase fallback to local mode:', err?.message || err);
+        state.firebaseConnected = false;
+        updateFirebaseStatusBadge();
+      }
+    }
+
+    // Cloud Write Helpers
+    async function saveSettingsToCloud() {
+      if (!db) return;
+      try { await setDoc(doc(db, 'welmrt_settings', 'main'), state.settings); }
+      catch (e) { console.error(e); }
+    }
+    async function saveDocToCloud(colName, id, data) {
+      if (!db) return;
+      try { await setDoc(doc(db, colName, id), data); }
+      catch (e) { console.error(e); }
+    }
+    async function deleteDocFromCloud(colName, id) {
+      if (!db) return;
+      try { await deleteDoc(doc(db, colName, id)); }
+      catch (e) { console.error(e); }
+    }
+
+    // =========================================================================
+    // 5. UTILITIES, CURRENCY FORMATTING & CUSTOM UI DIALOGS
+    // =========================================================================
+    function deepMerge(target, source) {
+      for (const k of Object.keys(source || {})) {
+        if (source[k] && typeof source[k] === 'object' && !Array.isArray(source[k])) {
+          target[k] = deepMerge(target[k] || {}, source[k]);
+        } else {
+          target[k] = source[k];
+        }
+      }
+      return target;
+    }
+
+    function t(key) {
+      return (I18N[state.lang] && I18N[state.lang][key]) || key;
+    }
+
+    function esc(str) {
+      return String(str ?? '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+    }
+
+    function usdToSyp(usd) {
+      const rate = Number(state.settings.exchangeRate) || 14500;
+      return Math.round((Number(usd) || 0) * rate);
+    }
+
+    function formatUsd(usd) {
+      return `$${(Number(usd) || 0).toFixed(2)}`;
+    }
+
+    function formatSyp(usd) {
+      return `${usdToSyp(usd).toLocaleString('en-US')} ${t('sypUnit')}`;
+    }
+
+    function formatPriceHtml(usd, compact = false) {
+      if (state.currencyMode === 'usd') {
+        return `<div class="leading-tight"><span class="font-black text-brand ${compact ? 'text-sm' : 'text-base'}">${formatUsd(usd)}</span></div>`;
+      }
+      if (state.currencyMode === 'syp') {
+        return `<div class="leading-tight"><span class="font-black text-brand ${compact ? 'text-xs sm:text-sm' : 'text-sm sm:text-base'}">${formatSyp(usd)}</span></div>`;
+      }
+      return `
+        <div class="flex flex-col leading-tight">
+          <span class="font-black text-brand ${compact ? 'text-sm' : 'text-base'}">${formatUsd(usd)}</span>
+          <span class="font-bold text-slate-500 ${compact ? 'text-[10px]' : 'text-[11px]'}">${formatSyp(usd)}</span>
+        </div>
+      `;
+    }
+
+    function formatPriceInline(usd) {
+      if (state.currencyMode === 'usd') return formatUsd(usd);
+      if (state.currencyMode === 'syp') return formatSyp(usd);
+      return `${formatUsd(usd)} (${formatSyp(usd)})`;
+    }
+
+    function showToast(msg, type = 'success') {
+      const container = document.getElementById('toast-container');
+      const el = document.createElement('div');
+      const bg = type === 'error' ? 'bg-red-600' : type === 'warning' ? 'bg-amber-500 text-slate-900' : 'bg-slate-900';
+      el.className = `${bg} text-white px-4 py-3 rounded-2xl shadow-xl text-xs sm:text-sm font-extrabold flex items-center justify-between gap-2 pointer-events-auto animate-fade-up`;
+      el.innerHTML = `<span>${esc(msg)}</span>`;
+      container.appendChild(el);
+      setTimeout(() => el.remove(), 3500);
+    }
+
+    function openModal(id) {
+      const el = document.getElementById(id);
+      if (!el) return;
+      el.classList.remove('hidden');
+      el.classList.add('flex');
+      refreshIcons();
+    }
+
+    window.closeModal = function(id) {
+      const el = document.getElementById(id);
+      if (!el) return;
+      el.classList.add('hidden');
+      el.classList.remove('flex');
+    };
+
+    function askConfirm(title, message) {
+      return new Promise((resolve) => {
+        document.getElementById('confirm-title').textContent = title;
+        document.getElementById('confirm-message').textContent = message;
+        openModal('confirm-modal');
+        const yesBtn = document.getElementById('confirm-yes-btn');
+        const noBtn = document.getElementById('confirm-no-btn');
+        const cleanup = (val) => {
+          yesBtn.onclick = null;
+          noBtn.onclick = null;
+          window.closeModal('confirm-modal');
+          resolve(val);
+        };
+        yesBtn.onclick = () => cleanup(true);
+        noBtn.onclick = () => cleanup(false);
+      });
+    }
+
+    function refreshIcons() {
+      if (window.lucide) window.lucide.createIcons();
+    }
+
+    // =========================================================================
+    // 6. STOREFRONT RENDERING
+    // =========================================================================
+    function applyBrandingAndTranslations() {
+      const s = state.settings;
+      document.documentElement.style.setProperty('--color-brand', s.brandColor || '#D91E18');
+      document.documentElement.style.setProperty('--color-fresh', s.freshColor || '#3B9E29');
+      document.documentElement.style.setProperty('--color-gold', s.goldColor || '#F5C518');
+
+      if (!state.isAdminView && !state.isSalesAuditView) {
+        document.documentElement.lang = state.lang;
+        document.documentElement.dir = state.lang === 'ar' ? 'rtl' : 'ltr';
+      }
+
+      document.querySelectorAll('[data-i18n]').forEach(el => {
+        el.textContent = t(el.getAttribute('data-i18n'));
+      });
+
+      document.getElementById('lang-toggle-btn').textContent = state.lang === 'ar' ? 'EN' : 'عربي';
+      document.getElementById('header-store-name').textContent = s.storeName || 'Welmrt - ويلمرت';
+      document.getElementById('footer-phone').textContent = s.phone || '';
+      document.getElementById('footer-email').textContent = s.email || '';
+      document.getElementById('footer-zones-text').textContent = (s.deliveryZones || [])
+        .map(z => state.lang === 'ar' ? z.nameAr : (z.nameEn || z.nameAr))
+        .join(' • ');
+
+      document.getElementById('live-rate-badge').textContent = `1$ = ${Number(s.exchangeRate).toLocaleString('en-US')} ${t('sypUnit')}`;
+
+      // Free Delivery Ticker (OFF & hidden by default)
+      const freeHintEl = document.getElementById('free-delivery-hint');
+      if (s.freeDeliveryEnabled) {
+        freeHintEl.classList.remove('hidden');
+        freeHintEl.textContent = state.lang === 'ar'
+          ? `توصيل مجاني فوق ${formatPriceInline(s.freeDeliveryThreshold)}`
+          : `Free delivery over ${formatPriceInline(s.freeDeliveryThreshold)}`;
+      } else {
+        freeHintEl.classList.add('hidden');
+        freeHintEl.textContent = '';
+      }
+
+      // Render Logo
+      const logoBox = document.getElementById('header-logo-box');
+      if (s.logoDataUrl) {
+        logoBox.innerHTML = `<img src="${s.logoDataUrl}" alt="Welmrt" class="w-full h-full object-cover" />`;
+      } else {
+        logoBox.innerHTML = DEFAULT_LOGO_SVG;
+      }
+
+      // Currency Switcher Pills
+      document.querySelectorAll('#currency-switcher .cur-btn').forEach(btn => {
+        const active = btn.getAttribute('data-cur-mode') === state.currencyMode;
+        btn.className = `cur-btn px-2 sm:px-2.5 py-1.5 rounded-lg text-[11px] sm:text-xs font-extrabold transition-all ${
+          active ? 'bg-brand text-white shadow-sm' : 'text-slate-600 hover:text-ink'
+        }`;
+      });
+    }
+
+    function setCurrencyMode(mode) {
+      state.currencyMode = mode;
+      renderAllStorefront();
+      const coModal = document.getElementById('checkout-modal');
+      if (coModal && !coModal.classList.contains('hidden')) {
+        populateCheckoutZones();
+        updateCheckoutSummary();
+      }
+      const budgetRes = document.getElementById('ai-budget-result');
+      if (budgetRes && !budgetRes.classList.contains('hidden') && state.lastSmartBasket.length) {
+        renderSmartBasketResult(state.lastSmartBasket, 'تم تحديث الأسعار حسب العملة المختارة');
+      }
+    }
+
+    function renderHeroSlider() {
+      const activeBanners = (state.banners || []).filter(b => b.active !== false);
+      const container = document.getElementById('hero-slides-container');
+      const dots = document.getElementById('hero-dots');
+      const section = document.getElementById('hero-section');
+
+      if (!activeBanners.length) {
+        section.classList.add('hidden');
+        return;
+      }
+      section.classList.remove('hidden');
+      if (state.heroIndex >= activeBanners.length) state.heroIndex = 0;
+
+      const b = activeBanners[state.heroIndex];
+      const title = state.lang === 'ar' ? b.titleAr : (b.titleEn || b.titleAr);
+      const subtitle = state.lang === 'ar' ? b.subtitleAr : (b.subtitleEn || b.subtitleAr);
+
+      let bgMedia = `<div class="absolute inset-0 bg-gradient-to-br ${b.bgGradient || 'from-[#D91E18] to-slate-900'}"></div>`;
+      if (b.videoId && b.mediaType === 'video') {
+        bgMedia = `<video data-video-id="${esc(b.videoId)}" autoplay muted loop playsinline class="absolute inset-0 w-full h-full object-cover"></video><div class="absolute inset-0 bg-slate-900/45"></div>`;
+      } else if (b.mediaDataUrl && b.mediaType === 'image') {
+        bgMedia = `<img src="${b.mediaDataUrl}" alt="${esc(title)}" class="absolute inset-0 w-full h-full object-cover" /><div class="absolute inset-0 bg-slate-900/45"></div>`;
+      }
+
+      container.innerHTML = `
+        <div class="relative w-full h-full flex items-center px-5 sm:px-10">
+          ${bgMedia}
+          <div class="relative z-10 max-w-xl space-y-2.5 text-white animate-fade-up">
+            <span class="inline-block bg-gold text-slate-900 font-black text-[10px] sm:text-xs px-3 py-1 rounded-full">Welmrt - ويلمرت حماة</span>
+            <h1 class="font-black text-xl sm:text-4xl leading-tight drop-shadow">${esc(title)}</h1>
+            <p class="text-xs sm:text-base text-slate-100 font-semibold drop-shadow-sm">${esc(subtitle)}</p>
+          </div>
+        </div>
+      `;
+
+      dots.innerHTML = activeBanners.map((_, idx) => `
+        <button type="button" onclick="window.setHeroIndex(${idx})"
+          class="h-2 rounded-full transition-all ${idx === state.heroIndex ? 'w-7 bg-gold' : 'w-2 bg-white/50 hover:bg-white'}"></button>
+      `).join('');
+
+      hydrateLocalVideos(container);
+    }
+
+    window.setHeroIndex = function(idx) {
+      state.heroIndex = idx;
+      renderHeroSlider();
+    };
+
+    function renderAdsSection() {
+      const activeAds = (state.ads || []).filter(a => a.active !== false);
+      const sec = document.getElementById('ads-section');
+      const grid = document.getElementById('ads-grid');
+      if (!activeAds.length) {
+        sec.classList.add('hidden');
+        return;
+      }
+      sec.classList.remove('hidden');
+
+      grid.innerHTML = activeAds.map(ad => {
+        const title = state.lang === 'ar' ? ad.titleAr : (ad.titleEn || ad.titleAr);
+        const desc = state.lang === 'ar' ? ad.descAr : (ad.descEn || ad.descAr);
+        let mediaHtml = '';
+        if (ad.videoId && ad.mediaType === 'video') {
+          mediaHtml = `<video data-video-id="${esc(ad.videoId)}" autoplay muted loop playsinline class="w-full h-40 object-cover"></video>`;
+        } else if (ad.mediaDataUrl && ad.mediaType === 'image') {
+          mediaHtml = `<img src="${ad.mediaDataUrl}" alt="${esc(title)}" class="w-full h-40 object-cover" />`;
+        } else {
+          mediaHtml = `<div class="w-full h-24 bg-gradient-to-r from-brand to-amber-500 flex items-center justify-center text-white font-black text-lg px-4 text-center">${esc(title)}</div>`;
+        }
+        return `
+          <div class="bg-white rounded-3xl overflow-hidden border border-slate-200/80 shadow-sm hover:shadow-md transition-all flex flex-col">
+            ${mediaHtml}
+            <div class="p-4 space-y-1">
+              <h3 class="font-black text-sm sm:text-base text-ink">${esc(title)}</h3>
+              <p class="text-xs text-slate-600 font-semibold">${esc(desc)}</p>
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      hydrateLocalVideos(grid);
+    }
+
+    function renderCategoriesBar() {
+      const bar = document.getElementById('categories-bar');
+      const allActive = state.selectedCategory === 'all';
+      let html = `
+        <button type="button" onclick="window.selectCategory('all')"
+          class="shrink-0 px-4 py-2 rounded-2xl text-xs sm:text-sm font-extrabold border transition-all flex items-center gap-1.5 ${
+            allActive ? 'bg-brand text-white border-brand shadow-md shadow-red-600/20' : 'bg-white text-slate-700 border-slate-200 hover:border-brand'
+          }">
+          <span>🏪</span>
+          <span>${t('allProducts')}</span>
+        </button>
+      `;
+
+      html += (state.categories || []).map(cat => {
+        const active = state.selectedCategory === cat.id;
+        const label = state.lang === 'ar' ? cat.nameAr : (cat.nameEn || cat.nameAr);
+        return `
+          <button type="button" onclick="window.selectCategory('${esc(cat.id)}')"
+            class="shrink-0 px-4 py-2 rounded-2xl text-xs sm:text-sm font-extrabold border transition-all flex items-center gap-1.5 ${
+              active ? 'bg-brand text-white border-brand shadow-md shadow-red-600/20' : 'bg-white text-slate-700 border-slate-200 hover:border-brand'
+            }">
+            <span>${esc(cat.icon || '📦')}</span>
+            <span>${esc(label)}</span>
+          </button>
+        `;
+      }).join('');
+
+      bar.innerHTML = html;
+    }
+
+    window.selectCategory = function(catId) {
+      state.selectedCategory = catId;
+      renderCategoriesBar();
+      renderProductsGrid();
+    };
+
+    function getVisibleProducts() {
+      // Auto-hide out-of-stock products (stock <= 0)
+      let list = (state.products || []).filter(p => Number(p.stock) > 0);
+      if (state.selectedCategory !== 'all') {
+        list = list.filter(p => p.categoryId === state.selectedCategory);
+      }
+      const q = (state.searchQuery || '').trim().toLowerCase();
+      if (q) {
+        list = list.filter(p =>
+          (p.nameAr || '').toLowerCase().includes(q) ||
+          (p.nameEn || '').toLowerCase().includes(q) ||
+          (p.descAr || '').toLowerCase().includes(q)
+        );
+      }
+      if (state.sortBy === 'price-asc') list.sort((a, b) => a.priceUsd - b.priceUsd);
+      else if (state.sortBy === 'price-desc') list.sort((a, b) => b.priceUsd - a.priceUsd);
+      return list;
+    }
+
+    function renderProductsGrid() {
+      const grid = document.getElementById('products-grid');
+      const heading = document.getElementById('products-heading');
+      const cat = state.categories.find(c => c.id === state.selectedCategory);
+      heading.textContent = cat ? (state.lang === 'ar' ? cat.nameAr : (cat.nameEn || cat.nameAr)) : t('allProducts');
+
+      const items = getVisibleProducts();
+      if (!items.length) {
+        grid.innerHTML = `
+          <div class="col-span-full bg-white rounded-3xl p-10 text-center border border-slate-200 space-y-2">
+            <div class="text-4xl">🔍</div>
+            <p class="font-extrabold text-slate-600">${state.lang === 'ar' ? 'لا توجد منتجات متوفرة مطابقة لبحثك حالياً' : 'No in-stock products match your search'}</p>
+          </div>
+        `;
+        return;
+      }
+
+      grid.innerHTML = items.map(p => {
+        const name = state.lang === 'ar' ? p.nameAr : (p.nameEn || p.nameAr);
+        const firstImg = (p.images && p.images[0]) || '';
+        const mediaHtml = firstImg
+          ? `<img src="${firstImg}" alt="${esc(name)}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />`
+          : `<div class="w-full h-full flex items-center justify-center text-5xl sm:text-6xl bg-gradient-to-br from-slate-50 to-slate-100">${esc(p.emoji || '🛒')}</div>`;
+
+        const hasVideoBadge = p.videoId ? `<span class="absolute top-2 start-2 bg-slate-900/80 text-white text-[10px] font-bold px-2 py-0.5 rounded-lg flex items-center gap-1"><i data-lucide="play" class="w-3 h-3 text-gold"></i> فيديو</span>` : '';
+
+        return `
+          <div class="group bg-white rounded-3xl border border-slate-200/80 shadow-sm hover:shadow-xl hover:border-brand/30 transition-all overflow-hidden flex flex-col">
+            <div onclick="window.openProductDetail('${esc(p.id)}')" class="relative h-36 sm:h-44 overflow-hidden cursor-pointer bg-slate-50">
+              ${mediaHtml}
+              ${hasVideoBadge}
+              <span class="absolute bottom-2 end-2 bg-white/90 backdrop-blur text-fresh text-[10px] font-black px-2 py-0.5 rounded-full shadow-xs">
+                ${state.lang === 'ar' ? `متوفر: ${p.stock}` : `In stock: ${p.stock}`}
+              </span>
+            </div>
+            <div class="p-3 sm:p-4 flex-1 flex flex-col justify-between gap-2.5">
+              <div onclick="window.openProductDetail('${esc(p.id)}')" class="cursor-pointer">
+                <h3 class="font-extrabold text-xs sm:text-sm text-ink line-clamp-2 leading-snug group-hover:text-brand transition-colors">${esc(name)}</h3>
+              </div>
+              <div class="flex items-end justify-between gap-2 pt-1">
+                ${formatPriceHtml(p.priceUsd, true)}
+                <button type="button" onclick="window.addToCart('${esc(p.id)}', 1)"
+                  class="bg-brand hover:opacity-95 text-white font-extrabold text-xs px-3 py-2 rounded-xl shadow-sm flex items-center gap-1 transition-all active:scale-90 shrink-0">
+                  <i data-lucide="plus" class="w-3.5 h-3.5"></i>
+                  <span class="hidden sm:inline">${t('addToCart')}</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      refreshIcons();
+    }
+
+    window.openProductDetail = function(productId) {
+      const p = state.products.find(x => x.id === productId);
+      if (!p) return;
+      const name = state.lang === 'ar' ? p.nameAr : (p.nameEn || p.nameAr);
+      const imgs = p.images || [];
+      const box = document.getElementById('product-detail-content');
+
+      let mainPreview = imgs[0]
+        ? `<img id="pd-main-img" src="${imgs[0]}" alt="${esc(name)}" class="w-full h-64 sm:h-80 object-cover rounded-2xl bg-slate-100" />`
+        : `<div class="w-full h-56 sm:h-64 rounded-2xl bg-slate-100 flex items-center justify-center text-7xl">${esc(p.emoji || '🛒')}</div>`;
+
+      const thumbsHtml = imgs.length > 1 ? `
+        <div class="flex gap-2 overflow-x-auto no-scrollbar pt-2">
+          ${imgs.map((src, i) => `
+            <button type="button" onclick="document.getElementById('pd-main-img').src=this.querySelector('img').src"
+              class="w-16 h-16 rounded-xl overflow-hidden border-2 border-slate-200 hover:border-brand shrink-0">
+              <img src="${src}" alt="thumb-${i}" class="w-full h-full object-cover" />
+            </button>
+          `).join('')}
+        </div>
+      ` : '';
+
+      const videoHtml = p.videoId ? `
+        <div class="space-y-1.5 pt-2">
+          <p class="text-xs font-extrabold text-ink flex items-center gap-1"><i data-lucide="video" class="w-4 h-4 text-brand"></i> فيديو توضيحي للمنتج</p>
+          <video data-video-id="${esc(p.videoId)}" controls playsinline class="w-full rounded-2xl max-h-60 bg-black"></video>
+        </div>
+      ` : '';
+
+      box.innerHTML = `
+        <div class="p-4 sm:p-6 space-y-4">
+          <div class="flex items-start justify-between gap-3">
+            <h3 class="font-black text-lg sm:text-xl text-ink">${esc(name)}</h3>
+            <button type="button" onclick="closeModal('product-detail-modal')" class="p-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-600">
+              <i data-lucide="x" class="w-5 h-5"></i>
+            </button>
+          </div>
+
+          <div>
+            ${mainPreview}
+            ${thumbsHtml}
+            ${videoHtml}
+          </div>
+
+          <div class="flex items-center justify-between bg-slate-50 p-4 rounded-2xl border border-slate-200">
+            <div>
+              <span class="text-[11px] font-bold text-slate-500 block">السعر</span>
+              ${formatPriceHtml(p.priceUsd, false)}
+            </div>
+            <span class="bg-emerald-100 text-fresh text-xs font-black px-3 py-1.5 rounded-xl">
+              ${state.lang === 'ar' ? `المتوفر بالمخزون: ${p.stock}` : `Stock: ${p.stock}`}
+            </span>
+          </div>
+
+          <div class="space-y-2 text-xs sm:text-sm">
+            ${p.descAr ? `<p class="text-slate-700 font-semibold leading-relaxed">${esc(p.descAr)}</p>` : ''}
+            ${p.descEn ? `<p class="text-slate-500 font-medium leading-relaxed" dir="ltr">${esc(p.descEn)}</p>` : ''}
+          </div>
+
+          <div class="flex items-center gap-3 pt-2">
+            <div class="flex items-center bg-slate-100 rounded-xl p-1">
+              <button type="button" onclick="const i=document.getElementById('pd-qty'); i.value=Math.max(1, Number(i.value)-1)" class="w-9 h-9 font-black text-lg rounded-lg hover:bg-white">-</button>
+              <input id="pd-qty" type="number" min="1" max="${p.stock}" value="1" class="w-12 text-center bg-transparent font-black text-sm outline-none" />
+              <button type="button" onclick="const i=document.getElementById('pd-qty'); i.value=Math.min(${p.stock}, Number(i.value)+1)" class="w-9 h-9 font-black text-lg rounded-lg hover:bg-white">+</button>
+            </div>
+            <button type="button" onclick="window.addToCart('${esc(p.id)}', Number(document.getElementById('pd-qty').value)||1); closeModal('product-detail-modal');"
+              class="flex-1 bg-brand hover:opacity-95 text-white font-black text-sm py-3 rounded-2xl shadow-lg shadow-red-600/20 flex items-center justify-center gap-2">
+              <i data-lucide="shopping-cart" class="w-4 h-4"></i>
+              <span>${t('addToCart')}</span>
+            </button>
+          </div>
+        </div>
+      `;
+
+      openModal('product-detail-modal');
+      hydrateLocalVideos(box);
+    };
+
+    function renderAllStorefront() {
+      applyBrandingAndTranslations();
+      renderHeroSlider();
+      renderAdsSection();
+      renderCategoriesBar();
+      renderProductsGrid();
+      renderCartDrawer();
+      refreshIcons();
+    }
+
+    // =========================================================================
+    // 7. CART DRAWER & SMART CART COMPANION
+    // =========================================================================
+    window.addToCart = function(productId, qty = 1) {
+      const p = state.products.find(x => x.id === productId);
+      if (!p || p.stock <= 0) {
+        showToast('هذا المنتج غير متوفر حالياً', 'error');
+        return;
+      }
+      const existing = state.cart.find(c => c.productId === productId);
+      const newQty = (existing ? existing.qty : 0) + qty;
+      if (newQty > p.stock) {
+        showToast(`الكمية المتوفرة فقط ${p.stock}`, 'warning');
+        return;
+      }
+      if (existing) existing.qty = newQty;
+      else state.cart.push({ productId, qty });
+
+      renderCartDrawer();
+      showToast(state.lang === 'ar' ? `تمت إضافة "${p.nameAr}" للسلة` : `Added "${p.nameEn || p.nameAr}" to cart`);
+    };
+
+    window.updateCartQty = function(productId, delta) {
+      const idx = state.cart.findIndex(c => c.productId === productId);
+      if (idx === -1) return;
+      const p = state.products.find(x => x.id === productId);
+      const next = state.cart[idx].qty + delta;
+      if (next <= 0) state.cart.splice(idx, 1);
+      else if (p && next <= p.stock) state.cart[idx].qty = next;
+      renderCartDrawer();
+    };
+
+    function getCartSubtotalUsd() {
+      return state.cart.reduce((sum, item) => {
+        const p = state.products.find(x => x.id === item.productId);
+        return sum + (p ? p.priceUsd * item.qty : 0);
+      }, 0);
+    }
+
+    window.openCartDrawer = function() {
+      renderCartDrawer();
+      document.getElementById('cart-drawer').classList.remove('hidden');
+      refreshIcons();
+    };
+
+    window.closeCartDrawer = function() {
+      document.getElementById('cart-drawer').classList.add('hidden');
+    };
+
+    function renderCartDrawer() {
+      const totalCount = state.cart.reduce((s, i) => s + i.qty, 0);
+      document.getElementById('cart-badge').textContent = totalCount;
+
+      const subtotal = getCartSubtotalUsd();
+      const threshold = Number(state.settings.freeDeliveryThreshold) || 25;
+      const pct = Math.min(100, Math.round((subtotal / threshold) * 100));
+      const remaining = Math.max(0, threshold - subtotal);
+
+      // Free Delivery Progress Bar (completely hidden when disabled)
+      const companionBar = document.getElementById('cart-companion-bar');
+      if (state.settings.freeDeliveryEnabled) {
+        companionBar.classList.remove('hidden');
+        companionBar.innerHTML = `
+          <div class="space-y-1.5">
+            <div class="flex justify-between text-xs font-extrabold ${remaining === 0 ? 'text-fresh' : 'text-slate-700'}">
+              <span>${remaining === 0 ? '🎉 مبروك! حصلت على توصيل مجاني' : `أضف بقيمة ${formatPriceInline(remaining)} للتوصيل المجاني`}</span>
+              <span>${pct}%</span>
+            </div>
+            <div class="w-full h-2 bg-emerald-200/70 rounded-full overflow-hidden">
+              <div class="h-full bg-fresh rounded-full transition-all duration-300" style="width:${pct}%"></div>
+            </div>
+          </div>
+        `;
+      } else {
+        companionBar.classList.add('hidden');
+        companionBar.innerHTML = '';
+      }
+
+      const listEl = document.getElementById('cart-items-list');
+      if (!state.cart.length) {
+        listEl.innerHTML = `
+          <div class="py-14 text-center space-y-3">
+            <div class="text-5xl">🛒</div>
+            <p class="font-extrabold text-slate-500 text-sm">سلتك فارغة حالياً</p>
+            <button type="button" onclick="closeCartDrawer(); openBudgetModal();" class="bg-gold text-slate-900 font-extrabold text-xs px-4 py-2.5 rounded-xl">
+              جرّب سلة الميزانية الذكية ✨
+            </button>
+          </div>
+        `;
+      } else {
+        listEl.innerHTML = state.cart.map(item => {
+          const p = state.products.find(x => x.id === item.productId);
+          if (!p) return '';
+          const name = state.lang === 'ar' ? p.nameAr : (p.nameEn || p.nameAr);
+          return `
+            <div class="flex items-center justify-between gap-3 bg-slate-50 p-3 rounded-2xl border border-slate-200/70">
+              <div class="flex items-center gap-2.5 min-w-0">
+                <div class="w-11 h-11 rounded-xl bg-white border border-slate-200 flex items-center justify-center text-xl shrink-0 overflow-hidden">
+                  ${p.images?.[0] ? `<img src="${p.images[0]}" class="w-full h-full object-cover" />` : esc(p.emoji || '🛒')}
+                </div>
+                <div class="min-w-0">
+                  <div class="font-extrabold text-xs text-ink truncate">${esc(name)}</div>
+                  <div class="text-[11px] font-bold text-brand">${formatPriceInline(p.priceUsd * item.qty)}</div>
+                </div>
+              </div>
+              <div class="flex items-center gap-1.5 bg-white rounded-xl border border-slate-200 p-1 shrink-0">
+                <button type="button" onclick="window.updateCartQty('${esc(p.id)}', -1)" class="w-6 h-6 rounded-lg hover:bg-slate-100 font-black text-sm">-</button>
+                <span class="w-5 text-center font-black text-xs">${item.qty}</span>
+                <button type="button" onclick="window.updateCartQty('${esc(p.id)}', 1)" class="w-6 h-6 rounded-lg hover:bg-slate-100 font-black text-sm">+</button>
+              </div>
+            </div>
+          `;
+        }).join('');
+      }
+
+      // Smart Add-on Suggestions
+      const inCartIds = new Set(state.cart.map(c => c.productId));
+      const suggestions = state.products.filter(p => p.stock > 0 && !inCartIds.has(p.id)).slice(0, 3);
+      document.getElementById('cart-suggestions').innerHTML = suggestions.length ? `
+        <div class="space-y-1.5">
+          <p class="text-[11px] font-black text-slate-500">إضافات مقترحة لسلتك:</p>
+          <div class="flex gap-2 overflow-x-auto no-scrollbar">
+            ${suggestions.map(s => `
+              <button type="button" onclick="window.addToCart('${esc(s.id)}', 1)"
+                class="shrink-0 bg-white border border-slate-200 hover:border-brand rounded-xl px-2.5 py-1.5 text-[11px] font-bold flex items-center gap-1.5">
+                <span>${esc(s.emoji || '🛒')}</span>
+                <span class="max-w-[110px] truncate">${esc(state.lang === 'ar' ? s.nameAr : (s.nameEn || s.nameAr))}</span>
+                <span class="text-brand font-black">+${formatPriceInline(s.priceUsd)}</span>
+              </button>
+            `).join('')}
+          </div>
+        </div>
+      ` : '';
+
+      // Footer
+      document.getElementById('cart-footer').innerHTML = `
+        <div class="flex items-center justify-between">
+          <span class="text-xs font-bold text-slate-500">${t('subtotal')}</span>
+          ${formatPriceHtml(subtotal, false)}
+        </div>
+        <button type="button" onclick="window.openCheckoutModal()" ${!state.cart.length ? 'disabled' : ''}
+          class="w-full bg-brand disabled:opacity-40 hover:opacity-95 text-white font-black text-sm py-3.5 rounded-2xl shadow-lg shadow-red-600/20 flex items-center justify-center gap-2 transition-all active:scale-95">
+          <i data-lucide="arrow-left-circle" class="w-4 h-4"></i>
+          <span>${t('checkoutTitle')}</span>
+        </button>
+      `;
+      refreshIcons();
+    }
+
+    // =========================================================================
+    // 8. CHECKOUT, GPS, SHAM CASH RECEIPT & SILENT DISPATCH
+    // =========================================================================
+    function populateCheckoutZones() {
+      const sel = document.getElementById('co-zone');
+      const cur = sel.value;
+      sel.innerHTML = (state.settings.deliveryZones || []).map(z => `
+        <option value="${esc(z.id)}" ${z.id === cur ? 'selected' : ''}>
+          ${esc(state.lang === 'ar' ? z.nameAr : (z.nameEn || z.nameAr))} (+${formatPriceInline(z.feeUsd)})
+        </option>
+      `).join('');
+    }
+
+    window.openCheckoutModal = function() {
+      if (!state.cart.length) return;
+      window.closeCartDrawer();
+      state.checkoutGps = null;
+      state.checkoutReceiptFile = null;
+      state.checkoutCoupon = null;
+      document.getElementById('co-gps-badge').classList.add('hidden');
+      document.getElementById('co-coupon').value = '';
+      document.getElementById('co-coupon-msg').classList.add('hidden');
+
+      populateCheckoutZones();
+      renderCheckoutPaymentMethods();
+      updateCheckoutSummary();
+      openModal('checkout-modal');
+    };
+
+    function renderCheckoutPaymentMethods() {
+      const pay = state.settings.payments;
+      const available = [];
+      if (pay.cod?.enabled) available.push({ id: 'cod', label: 'الدفع عند الاستلام', icon: 'banknote' });
+      if (pay.shamCash?.enabled) available.push({ id: 'shamCash', label: 'شام كاش', icon: 'qr-code' });
+      if (pay.externalBank?.enabled) available.push({ id: 'externalBank', label: 'البنك الخارجي', icon: 'landmark' });
+
+      if (!available.some(m => m.id === state.checkoutPaymentMethod)) {
+        state.checkoutPaymentMethod = available[0]?.id || '';
+      }
+
+      const container = document.getElementById('co-payment-methods');
+      if (!available.length) {
+        container.innerHTML = `<div class="col-span-full text-xs font-bold text-red-600 bg-red-50 p-3 rounded-xl">لا توجد طرق دفع مفعلة حالياً من الإدارة.</div>`;
+        document.getElementById('co-payment-details').innerHTML = '';
+        return;
+      }
+
+      container.innerHTML = available.map(m => {
+        const active = state.checkoutPaymentMethod === m.id;
+        return `
+          <button type="button" onclick="window.selectPaymentMethod('${m.id}')"
+            class="p-3 rounded-2xl border-2 text-xs font-extrabold flex items-center justify-center gap-2 transition-all ${
+              active ? 'border-brand bg-red-50/60 text-brand shadow-sm' : 'border-slate-200 bg-white text-slate-700 hover:border-slate-300'
+            }">
+            <i data-lucide="${m.icon}" class="w-4 h-4"></i>
+            <span>${m.label}</span>
+          </button>
+        `;
+      }).join('');
+
+      renderCheckoutPaymentDetails();
+      refreshIcons();
+    }
+
+    window.selectPaymentMethod = function(id) {
+      state.checkoutPaymentMethod = id;
+      renderCheckoutPaymentMethods();
+    };
+
+    function renderCheckoutPaymentDetails() {
+      const box = document.getElementById('co-payment-details');
+      const m = state.checkoutPaymentMethod;
+
+      if (m === 'cod') {
+        box.innerHTML = `
+          <div class="bg-slate-50 border border-slate-200 rounded-2xl p-3.5 text-xs font-bold text-slate-600">
+            تدفع قيمة الفاتورة نقداً لمندوب توصيل ويلمرت عند استلام طلبك في حماة.
+          </div>
+        `;
+        return;
+      }
+
+      if (m === 'shamCash') {
+        const sc = state.settings.payments.shamCash || {};
+        const barcodeBlock = sc.barcodeDataUrl ? `
+          <div class="flex flex-col items-center gap-2 bg-white p-3 rounded-2xl border border-amber-200">
+            <img src="${sc.barcodeDataUrl}" alt="Sham Cash Barcode" class="w-44 h-44 object-contain rounded-xl" />
+            <a href="${sc.barcodeDataUrl}" download="welmrt-shamcash-barcode.jpg"
+              class="bg-slate-900 hover:bg-brand text-white font-extrabold text-xs px-4 py-2 rounded-xl flex items-center gap-1.5">
+              <i data-lucide="download" class="w-3.5 h-3.5"></i> تحميل صورة الباركود
+            </a>
+          </div>
+        ` : '';
+
+        box.innerHTML = `
+          <div class="bg-amber-50/80 border-2 border-amber-300 rounded-2xl p-4 space-y-3.5">
+            <div class="flex flex-wrap items-center justify-between gap-2">
+              <span class="text-xs font-extrabold text-amber-950">معرّف حساب شام كاش الخاص بـ ويلمرت:</span>
+              <span class="font-mono font-black text-sm bg-white px-3 py-1 rounded-xl border border-amber-300 text-ink" dir="ltr">${esc(sc.accountId || '')}</span>
+            </div>
+            ${barcodeBlock}
+            <div class="space-y-1.5">
+              <label class="block text-xs font-black text-ink">إرفاق صورة أو ملف PDF لإيصال الدفع (إلزامي) *</label>
+              <input id="co-sham-receipt" type="file" accept="image/*,application/pdf"
+                class="w-full bg-white border border-amber-300 rounded-xl p-2 text-xs font-bold file:me-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:bg-brand file:text-white file:font-extrabold" />
+              <p class="text-xs font-extrabold text-red-600 flex items-center gap-1 pt-0.5">
+                <i data-lucide="alert-triangle" class="w-4 h-4 shrink-0"></i>
+                <span>ملاحظة: إذا لم تقم بإدراج صورة أو ملف PDF لإيصال الدفع لن يتم إكمال الطلب</span>
+              </p>
+            </div>
+          </div>
+        `;
+        document.getElementById('co-sham-receipt').addEventListener('change', (e) => {
+          state.checkoutReceiptFile = e.target.files?.[0] || null;
+        });
+        refreshIcons();
+        return;
+      }
+
+      if (m === 'externalBank') {
+        box.innerHTML = `
+          <div class="bg-slate-50 border border-slate-200 rounded-2xl p-4 space-y-1.5">
+            <p class="text-xs font-black text-ink">تفاصيل التحويل البنكي:</p>
+            <p class="text-xs font-bold text-slate-600 leading-relaxed">${esc(state.settings.payments.externalBank?.bankDetails || '')}</p>
+          </div>
+        `;
+      }
+    }
+
+    function getCheckoutTotals() {
+      const subtotal = getCartSubtotalUsd();
+      const zoneId = document.getElementById('co-zone')?.value;
+      const zone = (state.settings.deliveryZones || []).find(z => z.id === zoneId) || state.settings.deliveryZones[0];
+      const freeThresh = Number(state.settings.freeDeliveryThreshold) || 25;
+      const deliveryUsd = (state.settings.freeDeliveryEnabled && subtotal >= freeThresh) ? 0 : (Number(zone?.feeUsd) || 0);
+      const discountUsd = state.checkoutCoupon ? (subtotal * (state.checkoutCoupon.discountPercent / 100)) : 0;
+      const totalUsd = Math.max(0, subtotal - discountUsd + deliveryUsd);
+      return { subtotal, discountUsd, deliveryUsd, totalUsd, zone };
+    }
+
+    function updateCheckoutSummary() {
+      const { subtotal, discountUsd, deliveryUsd, totalUsd } = getCheckoutTotals();
+      document.getElementById('co-sum-subtotal').textContent = formatPriceInline(subtotal);
+      const discRow = document.getElementById('co-sum-discount-row');
+      if (discountUsd > 0) {
+        discRow.classList.remove('hidden');
+        document.getElementById('co-sum-discount').textContent = `-${formatPriceInline(discountUsd)}`;
+      } else {
+        discRow.classList.add('hidden');
+      }
+      document.getElementById('co-sum-delivery').textContent = deliveryUsd === 0 ? t('free') : formatPriceInline(deliveryUsd);
+
+      let totalHtml = `<div>${formatUsd(totalUsd)}</div><div class="text-xs font-bold text-yellow-200">${formatSyp(totalUsd)}</div>`;
+      if (state.currencyMode === 'usd') totalHtml = `<div>${formatUsd(totalUsd)}</div>`;
+      else if (state.currencyMode === 'syp') totalHtml = `<div>${formatSyp(totalUsd)}</div>`;
+      document.getElementById('co-sum-total').innerHTML = totalHtml;
+    }
+
+    async function silentDispatchWebhook(url, payload) {
+      if (!url || !url.trim()) return;
+      try {
+        await fetch(url.trim(), {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+      } catch (err) {
+        console.warn('Silent webhook dispatch notice:', err?.message || err);
+      }
+    }
+
+    document.getElementById('co-gps-btn').addEventListener('click', () => {
+      if (!navigator.geolocation) {
+        showToast('متصفحك لا يدعم تحديد الموقع GPS، يرجى كتابة العنوان يدوياً', 'error');
+        return;
+      }
+      const btn = document.getElementById('co-gps-btn');
+      btn.disabled = true;
+      navigator.geolocation.getCurrentPosition(
+        (pos) => {
+          btn.disabled = false;
+          const lat = pos.coords.latitude.toFixed(6);
+          const lng = pos.coords.longitude.toFixed(6);
+          const mapsUrl = `https://www.google.com/maps?q=${lat},${lng}`;
+          state.checkoutGps = { lat, lng, mapsUrl };
+          document.getElementById('co-gps-text').innerHTML = `<i data-lucide="check-circle" class="w-4 h-4"></i> تم تحديد الموقع بنجاح (${lat}, ${lng})`;
+          document.getElementById('co-gps-badge').classList.remove('hidden');
+          refreshIcons();
+          showToast('تم التقاط موقعك عبر GPS بنجاح');
+        },
+        () => {
+          btn.disabled = false;
+          showToast('تعذر الوصول للـ GPS، تأكد من تفعيل الموقع أو اكتب العنوان يدوياً', 'warning');
+        },
+        { enableHighAccuracy: true, timeout: 10000 }
+      );
+    });
+
+    document.getElementById('co-gps-clear').addEventListener('click', () => {
+      state.checkoutGps = null;
+      document.getElementById('co-gps-badge').classList.add('hidden');
+    });
+
+    document.getElementById('co-zone').addEventListener('change', updateCheckoutSummary);
+
+    document.getElementById('co-apply-coupon').addEventListener('click', () => {
+      const code = document.getElementById('co-coupon').value.trim().toUpperCase();
+      const found = (state.coupons || []).find(c => c.active !== false && c.code.toUpperCase() === code);
+      const msg = document.getElementById('co-coupon-msg');
+      msg.classList.remove('hidden');
+      if (found) {
+        state.checkoutCoupon = found;
+        msg.className = 'text-xs font-extrabold text-fresh';
+        msg.textContent = `تم تطبيق كود الخصم (${found.discountPercent}%) بنجاح!`;
+      } else {
+        state.checkoutCoupon = null;
+        msg.className = 'text-xs font-extrabold text-red-600';
+        msg.textContent = 'كود الخصم غير صالح أو منتهي.';
+      }
+      updateCheckoutSummary();
+    });
+
+    document.getElementById('checkout-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const customerName = document.getElementById('co-name').value.trim();
+      const customerWhatsapp = document.getElementById('co-whatsapp').value.trim();
+      const customerEmail = document.getElementById('co-email').value.trim();
+      const manualAddress = document.getElementById('co-address').value.trim();
+
+      if (!customerName || !customerWhatsapp) {
+        showToast('يرجى إدخال الاسم ورقم الواتساب', 'error');
+        return;
+      }
+
+      if (!state.checkoutGps && !manualAddress) {
+        showToast('يرجى تحديد موقعك عبر GPS أو كتابة العنوان لإتمام الطلب', 'error');
+        return;
+      }
+
+      if (!state.checkoutPaymentMethod) {
+        showToast('يرجى اختيار طريقة دفع متاحة', 'error');
+        return;
+      }
+
+      // Mandatory Sham Cash Receipt (Compressed for Firestore)
+      let receiptDataUrl = '';
+      let receiptMimeType = '';
+      let receiptFileName = '';
+      if (state.checkoutPaymentMethod === 'shamCash') {
+        if (!state.checkoutReceiptFile) {
+          showToast('ملاحظة: إذا لم تقم بإدراج صورة أو ملف PDF لإيصال الدفع لن يتم إكمال الطلب', 'error');
+          return;
+        }
+        receiptMimeType = state.checkoutReceiptFile.type || 'image/jpeg';
+        receiptFileName = state.checkoutReceiptFile.name || 'receipt';
+        if (receiptMimeType.startsWith('image/')) {
+          receiptDataUrl = await compressImageToDataUrl(state.checkoutReceiptFile, 700, 0.72);
+        } else {
+          if (state.checkoutReceiptFile.size > 650000) {
+            showToast('حجم ملف PDF كبير جداً، يرجى إرفاق لقطة شاشة (صورة) للإيصال', 'error');
+            return;
+          }
+          receiptDataUrl = await readFileAsDataUrl(state.checkoutReceiptFile);
+        }
+      }
+
+      const { subtotal, discountUsd, deliveryUsd, totalUsd, zone } = getCheckoutTotals();
+      let totalCostUsd = 0;
+      const items = state.cart.map(ci => {
+        const p = state.products.find(x => x.id === ci.productId);
+        const cost = Number(p?.costUsd) || 0;
+        totalCostUsd += cost * ci.qty;
+        return {
+          productId: ci.productId,
+          nameAr: p?.nameAr || '',
+          nameEn: p?.nameEn || '',
+          priceUsd: Number(p?.priceUsd) || 0,
+          costUsd: cost,
+          qty: ci.qty
+        };
+      });
+
+      const profitUsd = Math.max(0, (subtotal - discountUsd) - totalCostUsd);
+      const payLabel = state.checkoutPaymentMethod === 'cod' ? 'الدفع عند الاستلام' : state.checkoutPaymentMethod === 'shamCash' ? 'شام كاش' : 'البنك الخارجي';
+
+      const order = {
+        id: 'ord_' + Date.now() + '_' + Math.random().toString(36).slice(2, 6),
+        orderCode: 'WLM-' + String(Date.now()).slice(-6),
+        createdAt: Date.now(),
+        createdDate: getTodayDateStr(),
+        completedAt: null,
+        completedDate: null,
+        status: 'pending',
+        customerName,
+        customerWhatsapp,
+        customerEmail,
+        zoneNameAr: zone?.nameAr || 'حماة',
+        gps: state.checkoutGps,
+        manualAddress,
+        paymentMethod: state.checkoutPaymentMethod,
+        paymentMethodLabel: payLabel,
+        receiptDataUrl,
+        receiptMimeType,
+        receiptFileName,
+        items,
+        subtotalUsd: subtotal,
+        discountUsd,
+        deliveryUsd,
+        totalUsd,
+        totalSyp: usdToSyp(totalUsd),
+        profitUsd
+      };
+
+      state.orders.unshift(order);
+      await saveDocToCloud('welmrt_orders', order.id, order);
+
+      // Silent Dispatch to Company Webhooks (ONLY location + required message)
+      const locationText = [
+        order.gps?.mapsUrl ? `GPS: ${order.gps.mapsUrl}` : '',
+        order.manualAddress ? `العنوان: ${order.manualAddress}` : ''
+      ].filter(Boolean).join(' | ');
+
+      const companyDispatchPayload = {
+        type: 'new_order_notification',
+        location: locationText,
+        gpsUrl: order.gps?.mapsUrl || '',
+        writtenAddress: order.manualAddress || '',
+        message: `${locationText}\nيرجى متابعة الطلب في التطبيق`
+      };
+
+      silentDispatchWebhook(state.settings.webhooks?.companyWhatsappUrl, companyDispatchPayload);
+      silentDispatchWebhook(state.settings.webhooks?.companyGmailUrl, companyDispatchPayload);
+
+      state.cart = [];
+      renderCartDrawer();
+      window.closeModal('checkout-modal');
+      showOrderInvoiceModal(order, false);
+    });
+
+    function showOrderInvoiceModal(order, isAdminPreview = false) {
+      const gpsHtml = order.gps?.mapsUrl
+        ? `<div class="col-span-2"><span class="text-slate-400">موقع GPS:</span> <a href="${esc(order.gps.mapsUrl)}" target="_blank" class="text-fresh font-extrabold underline ms-1">فتح على خرائط جوجل (${esc(order.gps.lat)}, ${esc(order.gps.lng)})</a></div>`
+        : '';
+      const addrHtml = order.manualAddress
+        ? `<div class="col-span-2"><span class="text-slate-400">العنوان:</span> <strong class="text-ink ms-1">${esc(order.manualAddress)}</strong></div>`
+        : '';
+      const receiptBtn = (isAdminPreview && order.receiptDataUrl)
+        ? `<div class="col-span-2 pt-1"><button type="button" onclick="window.previewReceiptByOrderId('${esc(order.id)}')" class="no-print bg-gold hover:brightness-95 text-slate-900 font-extrabold text-xs px-3.5 py-2 rounded-xl inline-flex items-center gap-1.5"><i data-lucide="file-text" class="w-4 h-4"></i> عرض / تحميل إيصال شام كاش</button></div>`
+        : '';
+
+      document.getElementById('printable-invoice').innerHTML = `
+        <div class="text-center space-y-2 border-b border-slate-200 pb-4">
+          <div class="w-14 h-14 mx-auto rounded-full bg-emerald-100 text-fresh flex items-center justify-center">
+            <i data-lucide="check-circle-2" class="w-8 h-8"></i>
+          </div>
+          <h3 class="font-black text-lg text-ink">${isAdminPreview ? 'تفاصيل الفاتورة' : 'شكراً لتسوقكم من Welmrt - ويلمرت!'}</h3>
+          <p class="text-xs text-slate-500 font-semibold">
+            ${isAdminPreview ? `التاريخ: ${order.completedDate || order.createdDate}` : 'تم استلام طلبكم بنجاح وإرساله تلقائياً لفريق ويلمرت في حماة.'}
+          </p>
+          <span class="inline-block bg-slate-900 text-gold font-mono font-black text-sm px-4 py-1 rounded-full">${esc(order.orderCode)}</span>
+        </div>
+
+        <div class="grid grid-cols-2 gap-2 text-xs bg-slate-50 p-3.5 rounded-2xl border border-slate-200">
+          <div><span class="text-slate-400">الزبون:</span> <strong class="block text-ink">${esc(order.customerName)}</strong></div>
+          <div><span class="text-slate-400">واتساب:</span> <strong class="block text-ink" dir="ltr">${esc(order.customerWhatsapp)}</strong></div>
+          <div><span class="text-slate-400">المنطقة:</span> <strong class="block text-ink">${esc(order.zoneNameAr)}</strong></div>
+          <div><span class="text-slate-400">الدفع:</span> <strong class="block text-ink">${esc(order.paymentMethodLabel)}</strong></div>
+          ${addrHtml}
+          ${gpsHtml}
+          ${receiptBtn}
+        </div>
+
+        <div class="divide-y divide-slate-100 border border-slate-200 rounded-2xl overflow-hidden text-xs">
+          ${(order.items || []).map(i => `
+            <div class="flex justify-between items-center p-2.5 bg-white">
+              <span><strong>${i.qty}×</strong> ${esc(state.lang === 'ar' ? i.nameAr : (i.nameEn || i.nameAr))}</span>
+              <span class="font-bold text-ink">${formatPriceInline(i.priceUsd * i.qty)}</span>
+            </div>
+          `).join('')}
+        </div>
+
+        <div class="bg-slate-900 text-white rounded-2xl p-4 space-y-1.5 text-xs">
+          <div class="flex justify-between text-slate-300"><span>${t('subtotal')}</span><span>${formatPriceInline(order.subtotalUsd)}</span></div>
+          ${order.discountUsd > 0 ? `<div class="flex justify-between text-emerald-400"><span>الخصم</span><span>-${formatPriceInline(order.discountUsd)}</span></div>` : ''}
+          <div class="flex justify-between text-slate-300"><span>${t('deliveryFee')}</span><span>${order.deliveryUsd === 0 ? t('free') : formatPriceInline(order.deliveryUsd)}</span></div>
+          <div class="flex justify-between font-black text-base text-gold pt-2 border-t border-slate-700">
+            <span>${t('grandTotal')}</span>
+            <div class="text-end">
+              <div>${formatUsd(order.totalUsd)}</div>
+              <div class="text-xs text-yellow-200">${Number(order.totalSyp).toLocaleString('en-US')} ${t('sypUnit')}</div>
+            </div>
+          </div>
+        </div>
+      `;
+      openModal('invoice-modal');
+    }
+
+    window.previewReceiptByOrderId = function(orderId) {
+      const o = state.orders.find(x => x.id === orderId) || state.sales.find(x => x.id === orderId);
+      const body = document.getElementById('receipt-preview-body');
+      const footer = document.getElementById('receipt-preview-footer');
+      if (!o || !o.receiptDataUrl) {
+        body.innerHTML = `<p class="text-sm font-bold text-slate-500">لا يوجد إيصال مرفق لهذا الطلب.</p>`;
+        footer.innerHTML = '';
+      } else {
+        const isPdf = (o.receiptMimeType || '').includes('pdf') || o.receiptDataUrl.startsWith('data:application/pdf');
+        body.innerHTML = isPdf
+          ? `<iframe src="${o.receiptDataUrl}" class="w-full h-[65vh] rounded-xl border bg-white"></iframe>`
+          : `<img src="${o.receiptDataUrl}" alt="Receipt" class="max-h-[65vh] rounded-xl shadow object-contain" />`;
+        footer.innerHTML = `
+          <a href="${o.receiptDataUrl}" download="${esc(o.receiptFileName || 'shamcash-receipt.jpg')}"
+            class="bg-brand text-white font-extrabold text-xs px-4 py-2.5 rounded-xl flex items-center gap-1.5">
+            <i data-lucide="download" class="w-4 h-4"></i> تحميل الإيصال
+          </a>
+        `;
+      }
+      openModal('receipt-preview-modal');
+    };
+
+    // =========================================================================
+    // 9. AI ASSISTANT & SMART BUDGET BASKET
+    // =========================================================================
+    function renderAiMessages() {
+      const box = document.getElementById('ai-chat-messages');
+      box.innerHTML = state.aiMessages.map(m => `
+        <div class="flex ${m.role === 'user' ? 'justify-end' : 'justify-start'}">
+          <div class="max-w-[85%] rounded-2xl px-3.5 py-2.5 text-xs sm:text-sm font-semibold leading-relaxed ${
+            m.role === 'user' ? 'bg-brand text-white rounded-ee-sm' : 'bg-white border border-slate-200 text-ink rounded-es-sm shadow-xs'
+          }">${esc(m.text).replace(/\n/g, '<br/>')}</div>
+        </div>
+      `).join('');
+      box.scrollTop = box.scrollHeight;
+    }
+
+    document.getElementById('ai-chat-fab').addEventListener('click', () => {
+      renderAiMessages();
+      openModal('ai-chat-modal');
+    });
+
+    document.getElementById('ai-chat-form').addEventListener('submit', (e) => {
+      e.preventDefault();
+      const input = document.getElementById('ai-chat-input');
+      const q = input.value.trim();
+      if (!q) return;
+      input.value = '';
+      state.aiMessages.push({ role: 'user', text: q });
+
+      const qLower = q.toLowerCase();
+      const matches = state.products.filter(p =>
+        p.stock > 0 && (
+          (p.nameAr || '').toLowerCase().includes(qLower) ||
+          (p.nameEn || '').toLowerCase().includes(qLower) ||
+          qLower.split(' ').some(w => w.length > 2 && (p.nameAr || '').includes(w))
+        )
+      ).slice(0, 4);
+
+      let reply = '';
+      if (matches.length) {
+        reply = `إليك المنتجات المتوفرة في ويلمرت:\n` + matches.map(p => `• ${p.nameAr}: ${formatPriceInline(p.priceUsd)}`).join('\n');
+      } else if (q.includes('توصيل') || q.includes('حماة') || q.includes('منطقة')) {
+        const zones = (state.settings.deliveryZones || []).map(z => `${z.nameAr} (${formatPriceInline(z.feeUsd)})`).join('، ');
+        reply = `نصل لكافة مناطق محافظة حماة وريفها:\n${zones}.`;
+      } else if (q.includes('صرف') || q.includes('دولار') || q.includes('ليرة')) {
+        reply = `سعر الصرف المعتمد حالياً في متجر ويلمرت هو: 1$ = ${Number(state.settings.exchangeRate).toLocaleString('en-US')} ل.س، ويمكنك تبديل العملة من الشريط العلوي في أي وقت.`;
+      } else {
+        reply = `أهلاً بك في Welmrt - ويلمرت حماة! يمكنك البحث عن أي منتج بالاسم، أو تجربة "سلة الميزانية الذكية ✨" لتجهيز سلتك تلقائياً حسب ميزانيتك.`;
+      }
+
+      state.aiMessages.push({ role: 'bot', text: reply });
+      renderAiMessages();
+    });
+
+    window.openBudgetModal = function() { openModal('budget-modal'); };
+    document.getElementById('open-budget-btn').addEventListener('click', window.openBudgetModal);
+
+    document.getElementById('ai-generate-basket-btn').addEventListener('click', () => {
+      const amount = Number(document.getElementById('ai-budget-amount').value) || 10;
+      const cur = document.getElementById('ai-budget-currency').value;
+      const goal = document.getElementById('ai-budget-goal').value.trim();
+      const budgetUsd = cur === 'syp' ? (amount / (Number(state.settings.exchangeRate) || 14500)) : amount;
+
+      const inStock = state.products.filter(p => p.stock > 0);
+      const goalLower = goal.toLowerCase();
+      const prioritized = [...inStock].sort((a, b) => {
+        const aMatch = (a.nameAr + a.descAr).toLowerCase().includes(goalLower.slice(0, 4)) ? -1 : 0;
+        const bMatch = (b.nameAr + b.descAr).toLowerCase().includes(goalLower.slice(0, 4)) ? -1 : 0;
+        if (aMatch !== bMatch) return aMatch - bMatch;
+        return a.priceUsd - b.priceUsd;
+      });
+
+      let remaining = budgetUsd;
+      const picked = [];
+      for (const p of prioritized) {
+        if (p.priceUsd <= remaining) {
+          picked.push({ productId: p.id, qty: 1 });
+          remaining -= p.priceUsd;
+        }
+        if (picked.length >= 8) break;
+      }
+
+      state.lastSmartBasket = picked;
+      renderSmartBasketResult(picked, `تم اختيار ${picked.length} منتجات مناسبة لهدف "${goal}" ضمن ميزانيتك.`);
+    });
+
+    function renderSmartBasketResult(picked, note) {
+      const box = document.getElementById('ai-budget-result');
+      box.classList.remove('hidden');
+      if (!picked.length) {
+        box.innerHTML = `<p class="text-xs font-bold text-red-600">الميزانية المدخلة أقل من سعر أقل منتج متوفر حالياً.</p>`;
+        return;
+      }
+      let total = 0;
+      const rows = picked.map(item => {
+        const p = state.products.find(x => x.id === item.productId);
+        if (!p) return '';
+        total += p.priceUsd * item.qty;
+        return `<div class="flex justify-between text-xs py-1.5 border-b border-slate-100"><span class="font-bold">${esc(p.nameAr)}</span><span class="font-black text-brand">${formatPriceInline(p.priceUsd)}</span></div>`;
+      }).join('');
+
+      box.innerHTML = `
+        <p class="text-xs font-extrabold text-fresh">${esc(note)}</p>
+        <div class="bg-slate-50 rounded-2xl p-3 border border-slate-200">${rows}
+          <div class="flex justify-between pt-2 font-black text-sm text-ink"><span>الإجمالي</span><span class="text-brand">${formatPriceInline(total)}</span></div>
+        </div>
+        <button type="button" onclick="window.applySmartBasket()"
+          class="w-full bg-fresh hover:opacity-95 text-white font-black text-sm py-3 rounded-2xl">
+          أضف السلة كاملة بضغطة واحدة 🛒
+        </button>
+      `;
+    }
+
+    window.applySmartBasket = function() {
+      for (const item of state.lastSmartBasket) {
+        window.addToCart(item.productId, item.qty);
+      }
+      window.closeModal('budget-modal');
+      window.openCartDrawer();
+    };
+
+    // =========================================================================
+    // 10. SECRET 5-TAP ADMIN TRIGGER & FULL-SCREEN SEPARATE ADMIN VIEW
+    // =========================================================================
+    let logoTapCount = 0;
+    let logoTapTimer = null;
+
+    document.getElementById('brand-logo-trigger').addEventListener('click', () => {
+      logoTapCount++;
+      clearTimeout(logoTapTimer);
+      if (logoTapCount >= 5) {
+        logoTapCount = 0;
+        document.getElementById('admin-passcode-input').value = '';
+        document.getElementById('passcode-error').classList.add('hidden');
+        openModal('passcode-modal');
+        setTimeout(() => document.getElementById('admin-passcode-input').focus(), 100);
+        return;
+      }
+      logoTapTimer = setTimeout(() => { logoTapCount = 0; }, 1600);
+    });
+
+    function verifyPasscode() {
+      const entered = document.getElementById('admin-passcode-input').value.trim();
+      const expected = String(state.settings.adminPasscode || '1234');
+      if (entered === expected) {
+        window.closeModal('passcode-modal');
+        enterAdminView();
+      } else {
+        document.getElementById('passcode-error').classList.remove('hidden');
+      }
+    }
+
+    document.getElementById('submit-passcode-btn').addEventListener('click', verifyPasscode);
+    document.getElementById('admin-passcode-input').addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') verifyPasscode();
+    });
+
+    function enterAdminView() {
+      state.isAdminView = true;
+      state.isSalesAuditView = false;
+      document.getElementById('storefront-view').classList.add('hidden');
+      document.getElementById('sales-audit-view').classList.add('hidden');
+      document.getElementById('admin-view').classList.remove('hidden');
+      document.documentElement.lang = 'ar';
+      document.documentElement.dir = 'rtl';
+      state.activeAdminTab = 'overview';
+      updateFirebaseStatusBadge();
+      renderAdminNav();
+      renderAdminMain();
+    }
+
+    document.getElementById('exit-admin-btn').addEventListener('click', () => {
+      state.isAdminView = false;
+      state.isSalesAuditView = false;
+      document.getElementById('admin-view').classList.add('hidden');
+      document.getElementById('sales-audit-view').classList.add('hidden');
+      document.getElementById('storefront-view').classList.remove('hidden');
+      renderAllStorefront();
+    });
+
+    window.switchAdminTab = function(tab) {
+      state.activeAdminTab = tab;
+      state.editingProductId = null;
+      state.editingCategoryId = null;
+      renderAdminNav();
+      renderAdminMain();
+    };
+
+    function renderAdminNav() {
+      const activeOrdersCount = state.orders.length;
+      const outOfStockCount = state.products.filter(p => Number(p.stock) <= 0).length;
+
+      const tabs = [
+        { id: 'overview', label: 'النظرة العامة', icon: 'layout-dashboard' },
+        { id: 'orders', label: 'الطلبات النشطة', icon: 'shopping-bag', badge: activeOrdersCount },
+        { id: 'outOfStock', label: 'المنتجات التي نفذت', icon: 'alert-octagon', badge: outOfStockCount, danger: true },
+        { id: 'products', label: 'إدارة المنتجات', icon: 'package' },
+        { id: 'categories', label: 'إدارة الفئات', icon: 'folder-tree' },
+        { id: 'cms', label: 'الواجهة والإعلانات', icon: 'palette' },
+        { id: 'settings', label: 'الدفع والتوصيل والإعدادات', icon: 'settings' }
+      ];
+
+      document.getElementById('admin-nav').innerHTML = tabs.map(tb => {
+        const active = state.activeAdminTab === tb.id;
+        const badgeHtml = tb.badge > 0
+          ? `<span class="${tb.danger ? 'bg-red-600 text-white' : 'bg-gold text-slate-900'} text-[10px] font-black px-2 py-0.5 rounded-full ms-auto">${tb.badge}</span>`
+          : '';
+        return `
+          <button type="button" onclick="window.switchAdminTab('${tb.id}')"
+            class="shrink-0 flex items-center gap-2.5 px-3.5 py-2.5 rounded-2xl text-xs font-extrabold transition-all ${
+              active ? 'bg-slate-900 text-white shadow' : 'text-slate-600 hover:bg-slate-100'
+            }">
+            <i data-lucide="${tb.icon}" class="w-4 h-4 ${active ? 'text-gold' : ''}"></i>
+            <span>${tb.label}</span>
+            ${badgeHtml}
+          </button>
+        `;
+      }).join('');
+      refreshIcons();
+    }
+
+    function renderAdminMain() {
+      const box = document.getElementById('admin-main');
+      const tab = state.activeAdminTab;
+
+      // TAB A: OVERVIEW
+      if (tab === 'overview') {
+        const today = getTodayDateStr();
+        const completedToday = state.sales.filter(o => o.completedDate === today);
+        const todaySalesUsd = completedToday.reduce((s, o) => s + (Number(o.totalUsd) || 0), 0);
+        const todayProfitUsd = completedToday.reduce((s, o) => s + (Number(o.profitUsd) || 0), 0);
+        const activeOrders = state.orders.length;
+        const outCount = state.products.filter(p => Number(p.stock) <= 0).length;
+
+        box.innerHTML = `
+          <div class="space-y-6 animate-fade-up">
+            <div class="flex flex-wrap items-center justify-between gap-3">
+              <div>
+                <h2 class="text-xl font-black text-ink">النظرة العامة ليوم ${today}</h2>
+                <p class="text-xs text-slate-500 font-semibold">تتصفر مبيعات وأرباح اليوم تلقائياً كل يوم جديد، وتحفظ جميع الفواتير التاريخية في جرد المبيعات.</p>
+              </div>
+              <button type="button" onclick="window.openSalesAuditScreen()"
+                class="bg-brand hover:opacity-95 text-white font-black text-sm px-6 py-3 rounded-2xl shadow-lg shadow-red-600/25 flex items-center gap-2.5 transition-all active:scale-95">
+                <i data-lucide="file-spreadsheet" class="w-5 h-5"></i>
+                <span>جرد المبيعات</span>
+                <i data-lucide="arrow-left" class="w-4 h-4"></i>
+              </button>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+              <div class="bg-white p-5 rounded-3xl border border-slate-200 shadow-xs space-y-1">
+                <span class="text-xs font-bold text-slate-500">مبيعات اليوم (فواتير مكتملة)</span>
+                <div class="text-2xl font-black text-brand">${formatUsd(todaySalesUsd)}</div>
+                <div class="text-xs font-bold text-slate-500">${formatSyp(todaySalesUsd)}</div>
+              </div>
+              <div class="bg-emerald-50/70 p-5 rounded-3xl border border-emerald-200 shadow-xs space-y-1">
+                <span class="text-xs font-bold text-emerald-800">صافي أرباح اليوم</span>
+                <div class="text-2xl font-black text-fresh">${formatUsd(todayProfitUsd)}</div>
+                <div class="text-xs font-bold text-emerald-700">${formatSyp(todayProfitUsd)}</div>
+              </div>
+              <div onclick="window.switchAdminTab('orders')" class="cursor-pointer bg-white p-5 rounded-3xl border border-slate-200 hover:border-brand shadow-xs space-y-1">
+                <span class="text-xs font-bold text-slate-500">الطلبات النشطة بانتظار المتابعة</span>
+                <div class="text-3xl font-black text-ink">${activeOrders}</div>
+                <div class="text-[11px] font-bold text-brand">اضغط لإدارة الطلبات ←</div>
+              </div>
+              <div onclick="window.switchAdminTab('outOfStock')" class="cursor-pointer bg-white p-5 rounded-3xl border ${outCount > 0 ? 'border-red-300 bg-red-50/40' : 'border-slate-200'} shadow-xs space-y-1">
+                <span class="text-xs font-bold text-slate-500">المنتجات التي نفذت</span>
+                <div class="text-3xl font-black ${outCount > 0 ? 'text-red-600' : 'text-fresh'}">${outCount}</div>
+                <div class="text-[11px] font-bold text-slate-500">${outCount > 0 ? 'تحتاج إعادة تزويد' : 'المخزون ممتاز'}</div>
+              </div>
+            </div>
+          </div>
+        `;
+        refreshIcons();
+        return;
+      }
+
+      // TAB B: ACTIVE ORDERS
+      if (tab === 'orders') {
+        const active = state.orders;
+        box.innerHTML = `
+          <div class="space-y-4 animate-fade-up">
+            <div>
+              <h2 class="text-xl font-black text-ink">الطلبات النشطة (${active.length})</h2>
+              <p class="text-xs text-slate-500 font-semibold">1) اضغط "تأكيد الطلب" لحجز وخصم المخزون. 2) اضغط "تم إكمال الطلب" لنقل الفاتورة لجرد المبيعات وإضافة الأرباح وإشعار الزبون.</p>
+            </div>
+            ${!active.length ? `
+              <div class="bg-white rounded-3xl p-12 text-center border border-slate-200 text-slate-500 font-bold">لا توجد طلبات نشطة حالياً.</div>
+            ` : `
+              <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                ${active.map(o => `
+                  <div class="bg-white rounded-3xl border border-slate-200 p-5 shadow-xs space-y-3">
+                    <div class="flex items-center justify-between gap-2">
+                      <span class="font-mono font-black text-xs bg-slate-900 text-gold px-3 py-1 rounded-xl">${esc(o.orderCode)}</span>
+                      <span class="text-xs font-extrabold px-3 py-1 rounded-full ${o.status === 'confirmed' ? 'bg-blue-100 text-blue-700' : 'bg-amber-100 text-amber-800'}">
+                        ${o.status === 'confirmed' ? 'تم التأكيد (قيد التجهيز)' : 'طلب جديد'}
+                      </span>
+                    </div>
+                    <div class="grid grid-cols-2 gap-2 text-xs bg-slate-50 p-3 rounded-2xl">
+                      <div><span class="text-slate-400">الزبون:</span> <strong class="block">${esc(o.customerName)}</strong></div>
+                      <div><span class="text-slate-400">واتساب:</span> <strong class="block" dir="ltr">${esc(o.customerWhatsapp)}</strong></div>
+                      <div><span class="text-slate-400">المنطقة:</span> <strong class="block">${esc(o.zoneNameAr)}</strong></div>
+                      <div><span class="text-slate-400">الدفع:</span> <strong class="block">${esc(o.paymentMethodLabel)}</strong></div>
+                      ${o.manualAddress ? `<div class="col-span-2"><span class="text-slate-400">العنوان:</span> <strong>${esc(o.manualAddress)}</strong></div>` : ''}
+                      ${o.gps?.mapsUrl ? `<div class="col-span-2"><a href="${esc(o.gps.mapsUrl)}" target="_blank" class="text-fresh font-extrabold underline">📍 فتح موقع GPS على الخريطة</a></div>` : ''}
+                    </div>
+                    <div class="text-xs space-y-1">
+                      ${(o.items || []).map(i => `<div class="flex justify-between"><span>${i.qty}× ${esc(i.nameAr)}</span><span class="font-bold">${formatUsd(i.priceUsd * i.qty)}</span></div>`).join('')}
+                    </div>
+                    <div class="flex items-center justify-between pt-2 border-t border-slate-100 text-sm font-black">
+                      <span>الإجمالي: <span class="text-brand">${formatUsd(o.totalUsd)}</span></span>
+                      <span class="text-xs text-fresh">الربح: ${formatUsd(o.profitUsd)}</span>
+                    </div>
+                    <div class="flex flex-wrap gap-2 pt-1">
+                      ${o.receiptDataUrl ? `
+                        <button type="button" onclick="window.previewReceiptByOrderId('${esc(o.id)}')"
+                          class="bg-amber-100 hover:bg-amber-200 text-amber-900 font-extrabold text-xs px-3 py-2 rounded-xl">
+                          عرض إيصال شام كاش
+                        </button>
+                      ` : ''}
+                      ${o.status === 'pending' ? `
+                        <button type="button" onclick="window.adminConfirmOrder('${esc(o.id)}')"
+                          class="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-extrabold text-xs py-2.5 px-4 rounded-xl">
+                          تأكيد الطلب (خصم المخزون)
+                        </button>
+                      ` : `
+                        <button type="button" onclick="window.adminCompleteOrder('${esc(o.id)}')"
+                          class="flex-1 bg-fresh hover:opacity-95 text-white font-extrabold text-xs py-2.5 px-4 rounded-xl">
+                          تم إكمال الطلب ✓
+                        </button>
+                      `}
+                    </div>
+                  </div>
+                `).join('')}
+              </div>
+            `}
+          </div>
+        `;
+        refreshIcons();
+        return;
+      }
+
+      // TAB C: OUT OF STOCK
+      if (tab === 'outOfStock') {
+        const outItems = state.products.filter(p => Number(p.stock) <= 0);
+        box.innerHTML = `
+          <div class="space-y-4 animate-fade-up">
+            <div>
+              <h2 class="text-xl font-black text-ink">المنتجات التي نفذت (${outItems.length})</h2>
+              <p class="text-xs text-slate-500 font-semibold">أي منتج يصل مخزونه إلى 0 يختفي تلقائياً من أمام الزبائن ويظهر هنا لتعيد تزويده.</p>
+            </div>
+            ${!outItems.length ? `
+              <div class="bg-white rounded-3xl p-12 text-center border border-slate-200 text-fresh font-extrabold">جميع المنتجات متوفرة حالياً في المخزون!</div>
+            ` : `
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                ${outItems.map(p => `
+                  <div class="bg-white rounded-2xl border border-red-200 p-4 flex items-center justify-between gap-3">
+                    <div>
+                      <div class="font-black text-sm text-ink">${esc(p.nameAr)}</div>
+                      <div class="text-xs text-red-600 font-bold">المخزون: 0 (مخفي عن الزبائن)</div>
+                    </div>
+                    <div class="flex items-center gap-2">
+                      <input id="restock-${esc(p.id)}" type="number" min="1" value="10"
+                        class="w-16 bg-slate-100 border border-slate-200 rounded-xl px-2 py-2 text-center text-xs font-black" />
+                      <button type="button" onclick="window.adminQuickRestock('${esc(p.id)}')"
+                        class="bg-fresh text-white font-extrabold text-xs px-3.5 py-2 rounded-xl">إعادة تزويد</button>
+                    </div>
+                  </div>
+                `).join('')}
+              </div>
+            `}
+          </div>
+        `;
+        return;
+      }
+
+      // TAB D: PRODUCTS
+      if (tab === 'products') {
+        const editing = state.products.find(p => p.id === state.editingProductId) || null;
+        box.innerHTML = `
+          <div class="space-y-6 animate-fade-up">
+            <h2 class="text-xl font-black text-ink">إدارة المنتجات (${state.products.length})</h2>
+
+            <form id="admin-product-form" class="bg-white rounded-3xl border border-slate-200 p-5 space-y-4 shadow-xs">
+              <h3 class="font-black text-sm text-brand">${editing ? 'تعديل منتج' : 'إضافة منتج جديد (ضغط تلقائي للصور للحفظ السحابي المجاني)'}</h3>
+              <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                <div>
+                  <label class="block text-xs font-bold mb-1">اسم المنتج (عربي) *</label>
+                  <input id="ap-name-ar" type="text" required value="${esc(editing?.nameAr || '')}" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-bold" />
+                </div>
+                <div>
+                  <label class="block text-xs font-bold mb-1">اسم المنتج (إنجليزي)</label>
+                  <input id="ap-name-en" type="text" value="${esc(editing?.nameEn || '')}" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-bold" />
+                </div>
+                <div>
+                  <label class="block text-xs font-bold mb-1">القسم *</label>
+                  <select id="ap-cat" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-bold">
+                    ${state.categories.map(c => `<option value="${esc(c.id)}" ${editing?.categoryId === c.id ? 'selected' : ''}>${esc(c.nameAr)}</option>`).join('')}
+                  </select>
+                </div>
+                <div>
+                  <label class="block text-xs font-bold mb-1">سعر البيع ($) *</label>
+                  <input id="ap-price" type="number" step="0.01" min="0" required value="${editing?.priceUsd ?? ''}" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-bold" />
+                </div>
+                <div>
+                  <label class="block text-xs font-bold mb-1">سعر التكلفة ($) — مخفي عن الزبون *</label>
+                  <input id="ap-cost" type="number" step="0.01" min="0" required value="${editing?.costUsd ?? ''}" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-bold" />
+                </div>
+                <div>
+                  <label class="block text-xs font-bold mb-1">الكمية بالمخزون *</label>
+                  <input id="ap-stock" type="number" min="0" required value="${editing?.stock ?? 10}" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-bold" />
+                </div>
+                <div>
+                  <label class="block text-xs font-bold mb-1">صور المنتج (عدة صور — تُضغط تلقائياً للسحابة)</label>
+                  <input id="ap-images" type="file" accept="image/*" multiple class="w-full bg-slate-50 border border-slate-200 rounded-xl p-1.5 text-xs" />
+                </div>
+                <div>
+                  <label class="block text-xs font-bold mb-1">فيديو للمنتج (يُحفظ محلياً على الجهاز)</label>
+                  <input id="ap-video" type="file" accept="video/*" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-1.5 text-xs" />
+                </div>
+                <div>
+                  <label class="block text-xs font-bold mb-1">رمز تعبيري احتياطي</label>
+                  <input id="ap-emoji" type="text" value="${esc(editing?.emoji || '🛒')}" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-bold" />
+                </div>
+              </div>
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label class="block text-xs font-bold mb-1">الوصف بالعربي</label>
+                  <textarea id="ap-desc-ar" rows="2" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-semibold">${esc(editing?.descAr || '')}</textarea>
+                </div>
+                <div>
+                  <label class="block text-xs font-bold mb-1">الوصف بالإنجليزي (اختياري)</label>
+                  <textarea id="ap-desc-en" rows="2" dir="ltr" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-semibold">${esc(editing?.descEn || '')}</textarea>
+                </div>
+              </div>
+              <div class="flex gap-2">
+                <button type="submit" class="bg-brand text-white font-extrabold text-xs px-6 py-2.5 rounded-xl">
+                  ${editing ? 'حفظ التعديلات' : 'إضافة المنتج'}
+                </button>
+                ${editing ? `<button type="button" onclick="state.editingProductId=null; renderAdminMain();" class="bg-slate-200 text-slate-700 font-bold text-xs px-4 py-2.5 rounded-xl">إلغاء</button>` : ''}
+              </div>
+            </form>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
+              ${state.products.map(p => `
+                <div class="bg-white rounded-2xl border border-slate-200 p-3.5 flex items-center justify-between gap-3">
+                  <div class="flex items-center gap-3 min-w-0">
+                    <div class="w-12 h-12 rounded-xl bg-slate-100 flex items-center justify-center text-2xl overflow-hidden shrink-0">
+                      ${p.images?.[0] ? `<img src="${p.images[0]}" class="w-full h-full object-cover" />` : esc(p.emoji || '🛒')}
+                    </div>
+                    <div class="min-w-0">
+                      <div class="font-extrabold text-xs text-ink truncate">${esc(p.nameAr)}</div>
+                      <div class="text-[11px] font-bold text-brand">بيع: ${formatUsd(p.priceUsd)} • <span class="text-slate-500">تكلفة: ${formatUsd(p.costUsd)}</span></div>
+                      <div class="text-[11px] font-bold ${p.stock <= 0 ? 'text-red-600' : 'text-fresh'}">المخزون: ${p.stock}</div>
+                    </div>
+                  </div>
+                  <div class="flex items-center gap-1.5 shrink-0">
+                    <button type="button" onclick="window.adminEditProduct('${esc(p.id)}')" class="p-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700"><i data-lucide="pencil" class="w-3.5 h-3.5"></i></button>
+                    <button type="button" onclick="window.adminDeleteProduct('${esc(p.id)}')" class="p-2 rounded-xl bg-red-50 hover:bg-red-100 text-red-600"><i data-lucide="trash-2" class="w-3.5 h-3.5"></i></button>
+                  </div>
+                </div>
+              `).join('')}
+            </div>
+          </div>
+        `;
+        refreshIcons();
+        bindProductForm(editing);
+        return;
+      }
+
+      // TAB E: CATEGORIES
+      if (tab === 'categories') {
+        const editing = state.categories.find(c => c.id === state.editingCategoryId) || null;
+        box.innerHTML = `
+          <div class="space-y-6 animate-fade-up">
+            <h2 class="text-xl font-black text-ink">إدارة الفئات (${state.categories.length})</h2>
+            <form id="admin-cat-form" class="bg-white rounded-3xl border border-slate-200 p-5 flex flex-wrap gap-3 items-end">
+              <div class="flex-1 min-w-[160px]">
+                <label class="block text-xs font-bold mb-1">اسم الفئة (عربي) *</label>
+                <input id="ac-ar" type="text" required value="${esc(editing?.nameAr || '')}" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-bold" />
+              </div>
+              <div class="flex-1 min-w-[160px]">
+                <label class="block text-xs font-bold mb-1">اسم الفئة (إنجليزي)</label>
+                <input id="ac-en" type="text" value="${esc(editing?.nameEn || '')}" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-bold" />
+              </div>
+              <div class="w-24">
+                <label class="block text-xs font-bold mb-1">أيقونة</label>
+                <input id="ac-icon" type="text" value="${esc(editing?.icon || '📦')}" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-center font-bold" />
+              </div>
+              <button type="submit" class="bg-brand text-white font-extrabold text-xs px-5 py-2.5 rounded-xl">${editing ? 'تحديث' : 'إضافة فئة'}</button>
+            </form>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+              ${state.categories.map(c => `
+                <div class="bg-white rounded-2xl border border-slate-200 p-4 flex items-center justify-between">
+                  <div class="flex items-center gap-2.5">
+                    <span class="text-2xl">${esc(c.icon || '📦')}</span>
+                    <div>
+                      <div class="font-extrabold text-sm">${esc(c.nameAr)}</div>
+                      <div class="text-xs text-slate-400">${esc(c.nameEn || '')}</div>
+                    </div>
+                  </div>
+                  <div class="flex gap-1.5">
+                    <button type="button" onclick="window.adminEditCategory('${esc(c.id)}')" class="p-2 rounded-xl bg-slate-100 text-slate-700"><i data-lucide="pencil" class="w-3.5 h-3.5"></i></button>
+                    <button type="button" onclick="window.adminDeleteCategory('${esc(c.id)}')" class="p-2 rounded-xl bg-red-50 text-red-600"><i data-lucide="trash-2" class="w-3.5 h-3.5"></i></button>
+                  </div>
+                </div>
+              `).join('')}
+            </div>
+          </div>
+        `;
+        refreshIcons();
+        bindCategoryForm(editing);
+        return;
+      }
+
+      // TAB F: CMS & ADS
+      if (tab === 'cms') {
+        const s = state.settings;
+        box.innerHTML = `
+          <div class="space-y-6 animate-fade-up">
+            <h2 class="text-xl font-black text-ink">الواجهة، الشعار، البنرات والإعلانات</h2>
+
+            <form id="admin-branding-form" class="bg-white rounded-3xl border border-slate-200 p-5 space-y-4">
+              <h3 class="font-black text-sm text-brand">الهوية البصرية وسعر الصرف</h3>
+              <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                <div>
+                  <label class="block text-xs font-bold mb-1">اسم المتجر</label>
+                  <input id="cms-name" type="text" value="${esc(s.storeName)}" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-bold" />
+                </div>
+                <div>
+                  <label class="block text-xs font-bold mb-1">سعر صرف الدولار (ل.س)</label>
+                  <input id="cms-rate" type="number" min="1" value="${s.exchangeRate}" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-black text-brand" />
+                </div>
+                <div class="bg-slate-50 border border-slate-200 rounded-xl p-2.5 flex flex-col justify-between gap-2">
+                  <label class="flex items-center justify-between cursor-pointer">
+                    <span class="text-xs font-extrabold text-ink">تفعيل ميزة التوصيل المجاني</span>
+                    <input id="cms-free-del-en" type="checkbox" ${s.freeDeliveryEnabled ? 'checked' : ''} class="w-4 h-4 accent-brand" />
+                  </label>
+                  <div class="flex items-center gap-2">
+                    <span class="text-[11px] font-bold text-slate-500 shrink-0">الحد الأدنى ($):</span>
+                    <input id="cms-free-del" type="number" min="0" step="0.5" value="${s.freeDeliveryThreshold}" class="w-full bg-white border border-slate-200 rounded-lg px-2 py-1 text-xs font-bold" />
+                  </div>
+                </div>
+                <div>
+                  <label class="block text-xs font-bold mb-1">رفع شعار المتجر من الجهاز</label>
+                  <input id="cms-logo-file" type="file" accept="image/*" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-1.5 text-xs" />
+                </div>
+                <div>
+                  <label class="block text-xs font-bold mb-1">هاتف المتجر</label>
+                  <input id="cms-phone" type="text" dir="ltr" value="${esc(s.phone)}" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-bold" />
+                </div>
+                <div>
+                  <label class="block text-xs font-bold mb-1">بريد المتجر</label>
+                  <input id="cms-email" type="email" dir="ltr" value="${esc(s.email)}" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-bold" />
+                </div>
+              </div>
+              <div class="flex flex-wrap items-center gap-4">
+                <label class="flex items-center gap-2 text-xs font-bold">اللون الأساسي <input id="cms-c-brand" type="color" value="${esc(s.brandColor)}" class="w-8 h-8 rounded cursor-pointer" /></label>
+                <label class="flex items-center gap-2 text-xs font-bold">اللون الأخضر <input id="cms-c-fresh" type="color" value="${esc(s.freshColor)}" class="w-8 h-8 rounded cursor-pointer" /></label>
+                <label class="flex items-center gap-2 text-xs font-bold">اللون الذهبي <input id="cms-c-gold" type="color" value="${esc(s.goldColor)}" class="w-8 h-8 rounded cursor-pointer" /></label>
+              </div>
+              <div class="flex gap-2">
+                <button type="submit" class="bg-brand text-white font-extrabold text-xs px-6 py-2.5 rounded-xl">حفظ إعدادات الواجهة</button>
+                ${s.logoDataUrl ? `<button type="button" onclick="window.adminResetLogo()" class="bg-slate-200 text-slate-700 font-bold text-xs px-4 py-2.5 rounded-xl">استعادة شعار ويلمرت الأصلي</button>` : ''}
+              </div>
+            </form>
+
+            <!-- Hero Banners Manager -->
+            <div class="bg-white rounded-3xl border border-slate-200 p-5 space-y-4">
+              <h3 class="font-black text-sm text-brand">البنرات الرئيسية (صور سحابية أو فيديو محلي)</h3>
+              <form id="admin-banner-form" class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <input id="ab-title" type="text" required placeholder="عنوان البانر (عربي)" class="bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-bold" />
+                <input id="ab-sub" type="text" placeholder="نص فرعي" class="bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-bold" />
+                <input id="ab-media" type="file" accept="image/*,video/*" class="bg-slate-50 border border-slate-200 rounded-xl p-1.5 text-xs" />
+                <button type="submit" class="sm:col-span-3 bg-slate-900 text-white font-extrabold text-xs py-2.5 rounded-xl">إضافة بانر رئيسي</button>
+              </form>
+              <div class="space-y-2">
+                ${state.banners.map(b => `
+                  <div class="flex items-center justify-between bg-slate-50 p-3 rounded-2xl border border-slate-200 text-xs">
+                    <span class="font-extrabold">${esc(b.titleAr)} ${b.mediaType !== 'none' ? `(${b.mediaType})` : ''}</span>
+                    <button type="button" onclick="window.adminDeleteBanner('${esc(b.id)}')" class="text-red-600 font-bold">حذف</button>
+                  </div>
+                `).join('')}
+              </div>
+            </div>
+
+            <!-- Dedicated Ad Spaces Manager -->
+            <div class="bg-white rounded-3xl border border-slate-200 p-5 space-y-4">
+              <h3 class="font-black text-sm text-brand">مساحة الإعلانات (صور سحابية أو فيديو محلي)</h3>
+              <form id="admin-ad-form" class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <input id="aad-title" type="text" required placeholder="عنوان الإعلان" class="bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-bold" />
+                <input id="aad-desc" type="text" placeholder="تفاصيل العرض أو الإعلان" class="bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-bold" />
+                <input id="aad-media" type="file" accept="image/*,video/*" class="bg-slate-50 border border-slate-200 rounded-xl p-1.5 text-xs" />
+                <button type="submit" class="sm:col-span-3 bg-fresh text-white font-extrabold text-xs py-2.5 rounded-xl">إضافة إعلان جديد</button>
+              </form>
+              <div class="space-y-2">
+                ${state.ads.map(ad => `
+                  <div class="flex items-center justify-between bg-slate-50 p-3 rounded-2xl border border-slate-200 text-xs">
+                    <span class="font-extrabold">${esc(ad.titleAr)}</span>
+                    <button type="button" onclick="window.adminDeleteAd('${esc(ad.id)}')" class="text-red-600 font-bold">حذف</button>
+                  </div>
+                `).join('')}
+              </div>
+            </div>
+          </div>
+        `;
+        bindCmsForms();
+        return;
+      }
+
+      // TAB G: SETTINGS
+      if (tab === 'settings') {
+        const p = state.settings.payments;
+        const w = state.settings.webhooks || {};
+        box.innerHTML = `
+          <div class="space-y-6 animate-fade-up">
+            <h2 class="text-xl font-black text-ink">إعدادات الدفع والتوصيل والأمان</h2>
+
+            <form id="admin-payments-form" class="bg-white rounded-3xl border border-slate-200 p-5 space-y-4">
+              <h3 class="font-black text-sm text-brand">طرق الدفع (تشغيل / إيقاف بضغطة زر)</h3>
+              <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <label class="flex items-center justify-between bg-slate-50 p-3.5 rounded-2xl border border-slate-200 cursor-pointer">
+                  <span class="text-xs font-extrabold">الدفع عند الاستلام</span>
+                  <input id="pay-cod-en" type="checkbox" ${p.cod?.enabled ? 'checked' : ''} class="w-5 h-5 accent-brand" />
+                </label>
+                <label class="flex items-center justify-between bg-slate-50 p-3.5 rounded-2xl border border-slate-200 cursor-pointer">
+                  <span class="text-xs font-extrabold">شام كاش</span>
+                  <input id="pay-sham-en" type="checkbox" ${p.shamCash?.enabled ? 'checked' : ''} class="w-5 h-5 accent-brand" />
+                </label>
+                <label class="flex items-center justify-between bg-slate-50 p-3.5 rounded-2xl border border-slate-200 cursor-pointer">
+                  <span class="text-xs font-extrabold">البنك الخارجي</span>
+                  <input id="pay-bank-en" type="checkbox" ${p.externalBank?.enabled ? 'checked' : ''} class="w-5 h-5 accent-brand" />
+                </label>
+              </div>
+
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2 border-t border-slate-100">
+                <div>
+                  <label class="block text-xs font-bold mb-1">رقم معرّف حساب شام كاش</label>
+                  <input id="pay-sham-id" type="text" dir="ltr" value="${esc(p.shamCash?.accountId || '')}" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-bold" />
+                </div>
+                <div>
+                  <label class="block text-xs font-bold mb-1">رفع صورة باركود شام كاش (من الجهاز)</label>
+                  <input id="pay-sham-barcode" type="file" accept="image/*" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-1.5 text-xs" />
+                </div>
+              </div>
+
+              <div>
+                <label class="block text-xs font-bold mb-1">تفاصيل البنك الخارجي</label>
+                <textarea id="pay-bank-details" rows="2" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-semibold">${esc(p.externalBank?.bankDetails || '')}</textarea>
+              </div>
+
+              <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2 border-t border-slate-100">
+                <div>
+                  <label class="block text-xs font-bold mb-1">رابط Webhook واتساب الشركة (إرسال صامت)</label>
+                  <input id="wh-wa" type="url" dir="ltr" value="${esc(w.companyWhatsappUrl || '')}" placeholder="https://hook..." class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs" />
+                </div>
+                <div>
+                  <label class="block text-xs font-bold mb-1">رابط Webhook جيميل الشركة</label>
+                  <input id="wh-gmail" type="url" dir="ltr" value="${esc(w.companyGmailUrl || '')}" placeholder="https://hook..." class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs" />
+                </div>
+                <div>
+                  <label class="block text-xs font-bold mb-1">رابط Webhook إشعار إكمال الطلب للزبون</label>
+                  <input id="wh-cust" type="url" dir="ltr" value="${esc(w.customerCompleteUrl || '')}" placeholder="https://hook..." class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs" />
+                </div>
+              </div>
+
+              <div class="pt-2 border-t border-slate-100 flex flex-wrap items-end gap-3">
+                <div class="flex-1 min-w-[240px] bg-slate-50 border border-slate-200 rounded-2xl p-3 flex flex-wrap items-center justify-between gap-3">
+                  <label class="flex items-center gap-2 cursor-pointer">
+                    <input id="set-free-del-en" type="checkbox" ${state.settings.freeDeliveryEnabled ? 'checked' : ''} class="w-5 h-5 accent-brand" />
+                    <span class="text-xs font-extrabold text-ink">تفعيل ميزة التوصيل المجاني</span>
+                  </label>
+                  <div class="flex items-center gap-2">
+                    <label class="text-[11px] font-bold text-slate-500">الحد الأدنى ($):</label>
+                    <input id="set-free-del-thresh" type="number" min="0" step="0.5" value="${state.settings.freeDeliveryThreshold}" class="w-20 bg-white border border-slate-200 rounded-xl px-2.5 py-1.5 text-xs font-black text-center" />
+                  </div>
+                </div>
+                <div class="w-48">
+                  <label class="block text-xs font-bold mb-1">تغيير رمز الدخول السري</label>
+                  <input id="sec-passcode" type="text" value="${esc(state.settings.adminPasscode)}" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-black" />
+                </div>
+                <button type="submit" class="bg-brand text-white font-extrabold text-xs px-6 py-2.5 rounded-xl">حفظ كافة الإعدادات</button>
+              </div>
+            </form>
+
+            <!-- Delivery Zones & Coupons -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+              <div class="bg-white rounded-3xl border border-slate-200 p-5 space-y-3">
+                <h3 class="font-black text-sm text-brand">مناطق التوصيل في حماة وأجورها</h3>
+                <form id="admin-zone-form" class="flex gap-2">
+                  <input id="az-name" type="text" required placeholder="اسم المنطقة" class="flex-1 bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-bold" />
+                  <input id="az-fee" type="number" step="0.25" min="0" required placeholder="الأجرة $" class="w-24 bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-bold" />
+                  <button type="submit" class="bg-slate-900 text-white font-bold text-xs px-4 rounded-xl">إضافة</button>
+                </form>
+                <div class="space-y-1.5">
+                  ${(state.settings.deliveryZones || []).map(z => `
+                    <div class="flex justify-between items-center bg-slate-50 px-3 py-2 rounded-xl text-xs font-bold">
+                      <span>${esc(z.nameAr)} (${formatUsd(z.feeUsd)})</span>
+                      <button type="button" onclick="window.adminDeleteZone('${esc(z.id)}')" class="text-red-600">حذف</button>
+                    </div>
+                  `).join('')}
+                </div>
+              </div>
+
+              <div class="bg-white rounded-3xl border border-slate-200 p-5 space-y-3">
+                <h3 class="font-black text-sm text-brand">أكواد الخصم (الكوبونات)</h3>
+                <form id="admin-coupon-form" class="flex gap-2">
+                  <input id="acp-code" type="text" required placeholder="الكود (مثلاً HAMA15)" class="flex-1 bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-bold uppercase" />
+                  <input id="acp-pct" type="number" min="1" max="90" required placeholder="%" class="w-20 bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-bold" />
+                  <button type="submit" class="bg-slate-900 text-white font-bold text-xs px-4 rounded-xl">إضافة</button>
+                </form>
+                <div class="space-y-1.5">
+                  ${(state.coupons || []).map(c => `
+                    <div class="flex justify-between items-center bg-slate-50 px-3 py-2 rounded-xl text-xs font-bold">
+                      <span class="font-mono">${esc(c.code)} — خصم ${c.discountPercent}%</span>
+                      <button type="button" onclick="window.adminDeleteCoupon('${esc(c.id || c.code)}')" class="text-red-600">حذف</button>
+                    </div>
+                  `).join('')}
+                </div>
+              </div>
+            </div>
+          </div>
+        `;
+        bindSettingsForms();
+      }
+    }
+
+    // =========================================================================
+    // 11. ADMIN ACTIONS (CLOUD FIRESTORE SYNCED)
+    // =========================================================================
+    window.adminConfirmOrder = async function(orderId) {
+      const order = state.orders.find(o => o.id === orderId);
+      if (!order || order.status !== 'pending') return;
+
+      let hitZero = false;
+      for (const item of (order.items || [])) {
+        const p = state.products.find(x => x.id === item.productId);
+        if (p) {
+          p.stock = Math.max(0, Number(p.stock) - Number(item.qty));
+          if (p.stock === 0) hitZero = true;
+          await saveDocToCloud('welmrt_products', p.id, p);
+        }
+      }
+      order.status = 'confirmed';
+      await saveDocToCloud('welmrt_orders', order.id, order);
+      renderAdminNav();
+      renderAdminMain();
+      showToast(hitZero ? 'تم تأكيد الطلب وخصم المخزون (تنبيه: نفذ مخزون أحد المنتجات!)' : 'تم تأكيد الطلب وحجز المخزون بنجاح');
+    };
+
+    window.adminCompleteOrder = async function(orderId) {
+      const idx = state.orders.findIndex(o => o.id === orderId);
+      if (idx === -1) return;
+      const order = { ...state.orders[idx] };
+
+      order.status = 'completed';
+      order.completedAt = Date.now();
+      order.completedDate = getTodayDateStr();
+
+      // Move from Active Orders (welmrt_orders) to Sales Audit (welmrt_sales)
+      state.orders.splice(idx, 1);
+      state.sales.unshift(order);
+
+      await saveDocToCloud('welmrt_sales', order.id, order);
+      await deleteDocFromCloud('welmrt_orders', order.id);
+
+      // Customer Completion Notification
+      const completionMessage = '*قد أُكملَ طلبكم شكراً لتسوقكم من Welmrt*';
+      silentDispatchWebhook(state.settings.webhooks?.customerCompleteUrl, {
+        type: 'order_completed_customer_notice',
+        orderCode: order.orderCode,
+        customerWhatsapp: order.customerWhatsapp,
+        customerEmail: order.customerEmail || '',
+        message: completionMessage
+      });
+
+      renderAdminNav();
+      renderAdminMain();
+      showToast('تم إكمال الطلب ونقل الفاتورة لجرد المبيعات وإرسال إشعار الشكر للزبون ✓');
+    };
+
+    window.adminQuickRestock = async function(productId) {
+      const qty = Number(document.getElementById(`restock-${productId}`)?.value) || 0;
+      if (qty <= 0) return;
+      const p = state.products.find(x => x.id === productId);
+      if (!p) return;
+      p.stock = qty;
+      await saveDocToCloud('welmrt_products', p.id, p);
+      renderAdminNav();
+      renderAdminMain();
+      showToast(`تمت إعادة تزويد "${p.nameAr}" وعاد للظهور في المتجر`);
+    };
+
+    function bindProductForm(editing) {
+      document.getElementById('admin-product-form').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const imgFiles = Array.from(document.getElementById('ap-images').files || []);
+        const vidFile = document.getElementById('ap-video').files?.[0] || null;
+
+        let images = editing?.images ? [...editing.images] : [];
+        if (imgFiles.length) {
+          images = [];
+          for (const f of imgFiles.slice(0, 4)) {
+            const compressed = await compressImageToDataUrl(f, 700, 0.72);
+            images.push(compressed);
+          }
+        }
+        let videoId = editing?.videoId || '';
+        if (vidFile) {
+          videoId = await saveLocalVideo(vidFile);
+          showToast('تم حفظ الفيديو محلياً على جهازك (IndexedDB) لتجنب تجاوز حد التخزين المجاني', 'warning');
+        }
+
+        const data = {
+          id: editing ? editing.id : 'p_' + Date.now(),
+          nameAr: document.getElementById('ap-name-ar').value.trim(),
+          nameEn: document.getElementById('ap-name-en').value.trim(),
+          categoryId: document.getElementById('ap-cat').value,
+          priceUsd: Number(document.getElementById('ap-price').value) || 0,
+          costUsd: Number(document.getElementById('ap-cost').value) || 0,
+          stock: Number(document.getElementById('ap-stock').value) || 0,
+          emoji: document.getElementById('ap-emoji').value.trim() || '🛒',
+          descAr: document.getElementById('ap-desc-ar').value.trim(),
+          descEn: document.getElementById('ap-desc-en').value.trim(),
+          images,
+          videoId
+        };
+
+        if (editing) {
+          const idx = state.products.findIndex(x => x.id === editing.id);
+          if (idx !== -1) state.products[idx] = data;
+          state.editingProductId = null;
+        } else {
+          state.products.unshift(data);
+        }
+
+        await saveDocToCloud('welmrt_products', data.id, data);
+        renderAdminNav();
+        renderAdminMain();
+        showToast('تم حفظ المنتج ومزامنته سحابياً بنجاح');
+      });
+    }
+
+    window.adminEditProduct = function(id) {
+      state.editingProductId = id;
+      renderAdminMain();
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    };
+
+    window.adminDeleteProduct = async function(id) {
+      const ok = await askConfirm('حذف المنتج', 'هل أنت متأكد من حذف هذا المنتج نهائياً؟');
+      if (!ok) return;
+      state.products = state.products.filter(p => p.id !== id);
+      await deleteDocFromCloud('welmrt_products', id);
+      renderAdminNav();
+      renderAdminMain();
+      showToast('تم حذف المنتج');
+    };
+
+    function bindCategoryForm(editing) {
+      document.getElementById('admin-cat-form').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const item = {
+          id: editing ? editing.id : 'cat_' + Date.now(),
+          nameAr: document.getElementById('ac-ar').value.trim(),
+          nameEn: document.getElementById('ac-en').value.trim(),
+          icon: document.getElementById('ac-icon').value.trim() || '📦'
+        };
+        if (editing) {
+          const idx = state.categories.findIndex(c => c.id === editing.id);
+          if (idx !== -1) state.categories[idx] = item;
+          state.editingCategoryId = null;
+        } else {
+          state.categories.push(item);
+        }
+        await saveDocToCloud('welmrt_categories', item.id, item);
+        renderAdminMain();
+        showToast('تم حفظ الفئة بنجاح');
+      });
+    }
+
+    window.adminEditCategory = function(id) {
+      state.editingCategoryId = id;
+      renderAdminMain();
+    };
+
+    window.adminDeleteCategory = async function(id) {
+      const ok = await askConfirm('حذف الفئة', 'هل تريد حذف هذه الفئة؟');
+      if (!ok) return;
+      state.categories = state.categories.filter(c => c.id !== id);
+      await deleteDocFromCloud('welmrt_categories', id);
+      renderAdminMain();
+      showToast('تم حذف الفئة');
+    };
+
+    function bindCmsForms() {
+      document.getElementById('admin-branding-form').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const s = state.settings;
+        s.storeName = document.getElementById('cms-name').value.trim();
+        s.exchangeRate = Number(document.getElementById('cms-rate').value) || 14500;
+        s.freeDeliveryEnabled = document.getElementById('cms-free-del-en').checked;
+        s.freeDeliveryThreshold = Number(document.getElementById('cms-free-del').value) || 25;
+        s.phone = document.getElementById('cms-phone').value.trim();
+        s.email = document.getElementById('cms-email').value.trim();
+        s.brandColor = document.getElementById('cms-c-brand').value;
+        s.freshColor = document.getElementById('cms-c-fresh').value;
+        s.goldColor = document.getElementById('cms-c-gold').value;
+
+        const logoFile = document.getElementById('cms-logo-file').files?.[0];
+        if (logoFile) {
+          s.logoDataUrl = await compressImageToDataUrl(logoFile, 400, 0.8);
+        }
+        await saveSettingsToCloud();
+        applyBrandingAndTranslations();
+        renderAdminMain();
+        showToast('تم حفظ إعدادات الواجهة وسعر الصرف سحابياً');
+      });
+
+      document.getElementById('admin-banner-form').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const file = document.getElementById('ab-media').files?.[0];
+        let mediaDataUrl = '', videoId = '', mediaType = 'none';
+        if (file) {
+          if (file.type.startsWith('video')) {
+            videoId = await saveLocalVideo(file);
+            mediaType = 'video';
+          } else {
+            mediaDataUrl = await compressImageToDataUrl(file, 700, 0.72);
+            mediaType = 'image';
+          }
+        }
+        const b = {
+          id: 'b_' + Date.now(),
+          titleAr: document.getElementById('ab-title').value.trim(),
+          titleEn: document.getElementById('ab-title').value.trim(),
+          subtitleAr: document.getElementById('ab-sub').value.trim(),
+          subtitleEn: document.getElementById('ab-sub').value.trim(),
+          mediaDataUrl,
+          videoId,
+          mediaType,
+          bgGradient: 'from-[#D91E18] to-slate-900',
+          active: true
+        };
+        state.banners.push(b);
+        await saveDocToCloud('welmrt_banners', b.id, b);
+        renderAdminMain();
+        showToast('تمت إضافة البانر');
+      });
+
+      document.getElementById('admin-ad-form').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const file = document.getElementById('aad-media').files?.[0];
+        let mediaDataUrl = '', videoId = '', mediaType = 'none';
+        if (file) {
+          if (file.type.startsWith('video')) {
+            videoId = await saveLocalVideo(file);
+            mediaType = 'video';
+          } else {
+            mediaDataUrl = await compressImageToDataUrl(file, 700, 0.72);
+            mediaType = 'image';
+          }
+        }
+        const ad = {
+          id: 'ad_' + Date.now(),
+          titleAr: document.getElementById('aad-title').value.trim(),
+          titleEn: document.getElementById('aad-title').value.trim(),
+          descAr: document.getElementById('aad-desc').value.trim(),
+          descEn: document.getElementById('aad-desc').value.trim(),
+          mediaDataUrl,
+          videoId,
+          mediaType,
+          active: true
+        };
+        state.ads.push(ad);
+        await saveDocToCloud('welmrt_ads', ad.id, ad);
+        renderAdminMain();
+        showToast('تمت إضافة الإعلان');
+      });
+    }
+
+    window.adminResetLogo = async function() {
+      state.settings.logoDataUrl = '';
+      await saveSettingsToCloud();
+      renderAdminMain();
+      showToast('تمت استعادة الشعار الافتراضي');
+    };
+
+    window.adminDeleteBanner = async function(id) {
+      state.banners = state.banners.filter(b => b.id !== id);
+      await deleteDocFromCloud('welmrt_banners', id);
+      renderAdminMain();
+    };
+
+    window.adminDeleteAd = async function(id) {
+      state.ads = state.ads.filter(a => a.id !== id);
+      await deleteDocFromCloud('welmrt_ads', id);
+      renderAdminMain();
+    };
+
+    function bindSettingsForms() {
+      document.getElementById('admin-payments-form').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const p = state.settings.payments;
+        p.cod.enabled = document.getElementById('pay-cod-en').checked;
+        p.shamCash.enabled = document.getElementById('pay-sham-en').checked;
+        p.externalBank.enabled = document.getElementById('pay-bank-en').checked;
+        p.shamCash.accountId = document.getElementById('pay-sham-id').value.trim();
+        p.externalBank.bankDetails = document.getElementById('pay-bank-details').value.trim();
+
+        const bcFile = document.getElementById('pay-sham-barcode').files?.[0];
+        if (bcFile) {
+          p.shamCash.barcodeDataUrl = await compressImageToDataUrl(bcFile, 600, 0.75);
+        }
+
+        state.settings.webhooks = {
+          companyWhatsappUrl: document.getElementById('wh-wa').value.trim(),
+          companyGmailUrl: document.getElementById('wh-gmail').value.trim(),
+          customerCompleteUrl: document.getElementById('wh-cust').value.trim()
+        };
+
+        const newPass = document.getElementById('sec-passcode').value.trim();
+        if (newPass) state.settings.adminPasscode = newPass;
+
+        state.settings.freeDeliveryEnabled = document.getElementById('set-free-del-en').checked;
+        state.settings.freeDeliveryThreshold = Number(document.getElementById('set-free-del-thresh').value) || 25;
+
+        await saveSettingsToCloud();
+        applyBrandingAndTranslations();
+        showToast('تم حفظ إعدادات الدفع والتوصيل والأمان سحابياً');
+      });
+
+      document.getElementById('admin-zone-form').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const name = document.getElementById('az-name').value.trim();
+        const fee = Number(document.getElementById('az-fee').value) || 0;
+        state.settings.deliveryZones.push({ id: 'z_' + Date.now(), nameAr: name, nameEn: name, feeUsd: fee });
+        await saveSettingsToCloud();
+        renderAdminMain();
+      });
+
+      document.getElementById('admin-coupon-form').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const code = document.getElementById('acp-code').value.trim().toUpperCase();
+        const pct = Number(document.getElementById('acp-pct').value) || 5;
+        const cp = { id: code, code, discountPercent: pct, active: true };
+        state.coupons.push(cp);
+        await saveDocToCloud('welmrt_coupons', cp.id, cp);
+        renderAdminMain();
+      });
+    }
+
+    window.adminDeleteZone = async function(id) {
+      state.settings.deliveryZones = state.settings.deliveryZones.filter(z => z.id !== id);
+      await saveSettingsToCloud();
+      renderAdminMain();
+    };
+
+    window.adminDeleteCoupon = async function(id) {
+      state.coupons = state.coupons.filter(c => (c.id || c.code) !== id);
+      await deleteDocFromCloud('welmrt_coupons', id);
+      renderAdminMain();
+    };
+
+    // =========================================================================
+    // 12. STANDALONE FULL-SCREEN SALES AUDIT VIEW (جرد المبيعات)
+    // =========================================================================
+    window.openSalesAuditScreen = function() {
+      state.isSalesAuditView = true;
+      state.salesFilterOpen = false;
+      document.getElementById('admin-view').classList.add('hidden');
+      document.getElementById('sales-audit-view').classList.remove('hidden');
+      renderSalesAuditScreen();
+    };
+
+    window.closeSalesAuditScreen = function() {
+      state.isSalesAuditView = false;
+      state.salesFilterOpen = false;
+      document.getElementById('sales-audit-view').classList.add('hidden');
+      document.getElementById('admin-view').classList.remove('hidden');
+      renderAdminMain();
+    };
+
+    window.toggleSalesFilterPanel = function() {
+      state.salesFilterOpen = !state.salesFilterOpen;
+      renderSalesAuditScreen();
+    };
+
+    window.setSalesQuickFilter = function(mode) {
+      state.salesFilterMode = mode;
+      state.salesFilterOpen = false;
+      renderSalesAuditScreen();
+    };
+
+    window.applySalesSingleDate = function() {
+      const val = document.getElementById('sf-single-date')?.value;
+      if (!val) return;
+      state.salesFilterSingleDate = val;
+      state.salesFilterMode = 'single';
+      state.salesFilterOpen = false;
+      renderSalesAuditScreen();
+    };
+
+    window.applySalesDateRange = function() {
+      const from = document.getElementById('sf-from-date')?.value;
+      const to = document.getElementById('sf-to-date')?.value;
+      if (!from || !to) return;
+      state.salesFilterFromDate = from;
+      state.salesFilterToDate = to;
+      state.salesFilterMode = 'range';
+      state.salesFilterOpen = false;
+      renderSalesAuditScreen();
+    };
+
+    window.adminViewCompletedInvoice = function(orderId) {
+      const o = state.sales.find(x => x.id === orderId);
+      if (o) showOrderInvoiceModal(o, true);
+    };
+
+    function getFilteredCompletedOrders() {
+      const completed = state.sales || [];
+      const today = getTodayDateStr();
+      const m = state.salesFilterMode;
+
+      if (m === 'all') return completed;
+      if (m === 'today') return completed.filter(o => o.completedDate === today);
+      if (m === 'yesterday') return completed.filter(o => o.completedDate === formatDateOffset(-1));
+      if (m === 'last7') {
+        const start = formatDateOffset(-6);
+        return completed.filter(o => (o.completedDate || '') >= start && (o.completedDate || '') <= today);
+      }
+      if (m === 'thisMonth') {
+        const ym = today.slice(0, 7);
+        return completed.filter(o => (o.completedDate || '').startsWith(ym));
+      }
+      if (m === 'single') return completed.filter(o => o.completedDate === state.salesFilterSingleDate);
+      if (m === 'range') {
+        return completed.filter(o => (o.completedDate || '') >= state.salesFilterFromDate && (o.completedDate || '') <= state.salesFilterToDate);
+      }
+      return completed;
+    }
+
+    function getSalesFilterLabel() {
+      const m = state.salesFilterMode;
+      if (m === 'today') return `اليوم (${getTodayDateStr()})`;
+      if (m === 'yesterday') return `أمس (${formatDateOffset(-1)})`;
+      if (m === 'last7') return 'آخر 7 أيام';
+      if (m === 'thisMonth') return 'هذا الشهر';
+      if (m === 'all') return 'الكل (جميع الفواتير)';
+      if (m === 'single') return `تاريخ محدد: ${state.salesFilterSingleDate}`;
+      if (m === 'range') return `من ${state.salesFilterFromDate} إلى ${state.salesFilterToDate}`;
+      return 'الكل';
+    }
+
+    function renderSalesAuditScreen() {
+      const container = document.getElementById('sales-audit-view');
+      const invoices = getFilteredCompletedOrders();
+      const totalSalesUsd = invoices.reduce((s, o) => s + (Number(o.totalUsd) || 0), 0);
+      const totalProfitUsd = invoices.reduce((s, o) => s + (Number(o.profitUsd) || 0), 0);
+      const activeLabel = getSalesFilterLabel();
+
+      container.innerHTML = `
+        <header class="bg-slate-900 text-white px-4 sm:px-6 py-4 flex flex-wrap items-center justify-between gap-3 sticky top-0 z-30 shadow-md">
+          <div class="flex items-center gap-3">
+            <button type="button" onclick="window.closeSalesAuditScreen()"
+              class="bg-white/10 hover:bg-brand text-white font-extrabold text-xs sm:text-sm px-4 py-2.5 rounded-xl flex items-center gap-2 transition-all">
+              <i data-lucide="arrow-right" class="w-4 h-4"></i>
+              <span>رجوع للنظرة العامة</span>
+            </button>
+            <div>
+              <h1 class="font-black text-base sm:text-xl flex items-center gap-2">
+                <i data-lucide="file-spreadsheet" class="w-5 h-5 text-gold"></i>
+                <span>جرد المبيعات والفواتير</span>
+              </h1>
+              <p class="text-[11px] text-slate-400">عرض وتصفية جميع الفواتير المكتملة حسب التاريخ</p>
+            </div>
+          </div>
+
+          <div class="flex items-center gap-2">
+            <span class="hidden sm:inline-flex items-center gap-1.5 bg-white/10 text-gold text-xs font-extrabold px-3.5 py-2 rounded-xl">
+              <i data-lucide="calendar" class="w-3.5 h-3.5"></i> ${esc(activeLabel)}
+            </span>
+            <button type="button" onclick="window.toggleSalesFilterPanel()"
+              class="bg-gold hover:brightness-95 text-slate-900 font-black text-xs sm:text-sm px-4 sm:px-5 py-2.5 rounded-xl shadow-lg flex items-center gap-2 transition-all active:scale-95">
+              <i data-lucide="filter" class="w-4 h-4"></i>
+              <span>تصفية حسب التاريخ</span>
+              <i data-lucide="${state.salesFilterOpen ? 'chevron-up' : 'chevron-down'}" class="w-4 h-4"></i>
+            </button>
+          </div>
+        </header>
+
+        <main class="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 space-y-6 animate-fade-up">
+          ${state.salesFilterOpen ? `
+            <section class="bg-white rounded-3xl p-5 border-2 border-gold shadow-lg space-y-5 animate-fade-up">
+              <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+                <h3 class="font-black text-sm sm:text-base text-ink flex items-center gap-2">
+                  <i data-lucide="calendar-search" class="w-5 h-5 text-brand"></i> خيارات التصفية حسب التاريخ
+                </h3>
+                <button type="button" onclick="window.setSalesQuickFilter('all')" class="text-xs font-extrabold text-brand hover:underline">عرض الكل</button>
+              </div>
+
+              <div class="flex flex-wrap gap-2">
+                ${[
+                  { id: 'today', label: 'اليوم' },
+                  { id: 'yesterday', label: 'أمس' },
+                  { id: 'last7', label: 'آخر 7 أيام' },
+                  { id: 'thisMonth', label: 'هذا الشهر' },
+                  { id: 'all', label: 'الكل' }
+                ].map(p => `
+                  <button type="button" onclick="window.setSalesQuickFilter('${p.id}')"
+                    class="px-4 py-2 rounded-xl text-xs font-extrabold border transition-all ${
+                      state.salesFilterMode === p.id ? 'bg-brand text-white border-brand shadow' : 'bg-slate-50 text-slate-700 border-slate-200 hover:border-brand'
+                    }">${p.label}</button>
+                `).join('')}
+              </div>
+
+              <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 pt-2 border-t border-slate-100">
+                <div class="bg-slate-50 p-4 rounded-2xl border border-slate-200 space-y-2">
+                  <label class="block text-xs font-extrabold text-ink">تاريخ محدد (يوم واحد):</label>
+                  <div class="flex gap-2">
+                    <input id="sf-single-date" type="date" value="${esc(state.salesFilterSingleDate)}" class="flex-1 bg-white border border-slate-300 rounded-xl px-3 py-2 text-xs font-bold" />
+                    <button type="button" onclick="window.applySalesSingleDate()" class="bg-slate-900 hover:bg-brand text-white font-extrabold text-xs px-4 py-2 rounded-xl">تطبيق</button>
+                  </div>
+                </div>
+                <div class="bg-slate-50 p-4 rounded-2xl border border-slate-200 space-y-2">
+                  <label class="block text-xs font-extrabold text-ink">نطاق تاريخي (من تاريخ — إلى تاريخ):</label>
+                  <div class="flex flex-wrap sm:flex-nowrap items-center gap-2">
+                    <input id="sf-from-date" type="date" value="${esc(state.salesFilterFromDate)}" class="flex-1 bg-white border border-slate-300 rounded-xl px-3 py-2 text-xs font-bold" />
+                    <span class="text-xs font-bold text-slate-500">إلى</span>
+                    <input id="sf-to-date" type="date" value="${esc(state.salesFilterToDate)}" class="flex-1 bg-white border border-slate-300 rounded-xl px-3 py-2 text-xs font-bold" />
+                    <button type="button" onclick="window.applySalesDateRange()" class="bg-fresh text-white font-extrabold text-xs px-4 py-2 rounded-xl">تطبيق</button>
+                  </div>
+                </div>
+              </div>
+            </section>
+          ` : ''}
+
+          <section class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div class="bg-white p-5 rounded-3xl border border-slate-200 shadow-xs">
+              <p class="text-xs font-bold text-slate-500">عدد الفواتير (${esc(activeLabel)})</p>
+              <p class="text-3xl font-black text-ink mt-1">${invoices.length}</p>
+            </div>
+            <div class="bg-white p-5 rounded-3xl border border-red-200 shadow-xs">
+              <p class="text-xs font-bold text-slate-500">إجمالي المبيعات</p>
+              <p class="text-2xl sm:text-3xl font-black text-brand mt-1">${formatUsd(totalSalesUsd)}</p>
+              <p class="text-xs font-bold text-slate-500">${formatSyp(totalSalesUsd)}</p>
+            </div>
+            <div class="bg-emerald-50/60 p-5 rounded-3xl border border-emerald-200 shadow-xs">
+              <p class="text-xs font-bold text-emerald-800">صافي الأرباح</p>
+              <p class="text-2xl sm:text-3xl font-black text-fresh mt-1">${formatUsd(totalProfitUsd)}</p>
+              <p class="text-xs font-bold text-emerald-700">${formatSyp(totalProfitUsd)}</p>
+            </div>
+          </section>
+
+          <section class="bg-white rounded-3xl border border-slate-200 shadow-xs overflow-hidden">
+            <div class="px-5 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/70">
+              <h3 class="font-black text-sm sm:text-base text-ink">سجل الفواتير المكتملة (${invoices.length})</h3>
+            </div>
+            ${!invoices.length ? `
+              <div class="p-12 text-center space-y-3">
+                <p class="font-extrabold text-slate-500">لا توجد فواتير مبيعات مكتملة ضمن (${esc(activeLabel)})</p>
+                <button type="button" onclick="window.setSalesQuickFilter('all')" class="bg-slate-900 text-white font-bold text-xs px-5 py-2.5 rounded-xl">عرض جميع الفواتير</button>
+              </div>
+            ` : `
+              <div class="overflow-x-auto">
+                <table class="w-full text-xs text-right">
+                  <thead class="bg-slate-100 text-slate-600 font-extrabold border-b border-slate-200">
+                    <tr>
+                      <th class="py-3.5 px-4">رقم الفاتورة</th>
+                      <th class="py-3.5 px-4">التاريخ</th>
+                      <th class="py-3.5 px-4">الزبون</th>
+                      <th class="py-3.5 px-4">المنطقة</th>
+                      <th class="py-3.5 px-4">الدفع</th>
+                      <th class="py-3.5 px-4">الإجمالي</th>
+                      <th class="py-3.5 px-4">الربح</th>
+                      <th class="py-3.5 px-4 text-center">الفاتورة</th>
+                    </tr>
+                  </thead>
+                  <tbody class="divide-y divide-slate-100">
+                    ${invoices.map(o => `
+                      <tr class="hover:bg-slate-50">
+                        <td class="py-3.5 px-4"><span class="font-mono font-black bg-slate-900 text-gold px-2.5 py-1 rounded-lg">${esc(o.orderCode)}</span></td>
+                        <td class="py-3.5 px-4 whitespace-nowrap font-bold">${esc(o.completedDate || o.createdDate)}</td>
+                        <td class="py-3.5 px-4">
+                          <div class="font-extrabold">${esc(o.customerName)}</div>
+                          <div class="text-[11px] text-slate-400" dir="ltr">${esc(o.customerWhatsapp)}</div>
+                        </td>
+                        <td class="py-3.5 px-4 font-bold">${esc(o.zoneNameAr)}</td>
+                        <td class="py-3.5 px-4 font-bold">${esc(o.paymentMethodLabel)}</td>
+                        <td class="py-3.5 px-4 whitespace-nowrap">
+                          <div class="font-black text-brand">${formatUsd(o.totalUsd)}</div>
+                          <div class="text-[11px] text-slate-500">${formatSyp(o.totalUsd)}</div>
+                        </td>
+                        <td class="py-3.5 px-4 whitespace-nowrap">
+                          <div class="font-black text-fresh">${formatUsd(o.profitUsd)}</div>
+                          <div class="text-[11px] text-emerald-700">${formatSyp(o.profitUsd)}</div>
+                        </td>
+                        <td class="py-3.5 px-4 text-center">
+                          <button type="button" onclick="window.adminViewCompletedInvoice('${esc(o.id)}')"
+                            class="bg-slate-900 hover:bg-brand text-white font-bold px-3.5 py-2 rounded-xl">
+                            عرض الفاتورة
+                          </button>
+                        </td>
+                      </tr>
+                    `).join('')}
+                  </tbody>
+                </table>
+              </div>
+            `}
+          </section>
+        </main>
+      `;
+      refreshIcons();
+    }
+
+    // =========================================================================
+    // 13. EVENT LISTENERS & BOOTSTRAP
+    // =========================================================================
+    document.querySelectorAll('#currency-switcher .cur-btn').forEach(btn => {
+      btn.addEventListener('click', () => setCurrencyMode(btn.getAttribute('data-cur-mode')));
+    });
+
+    document.getElementById('lang-toggle-btn').addEventListener('click', () => {
+      state.lang = state.lang === 'ar' ? 'en' : 'ar';
+      renderAllStorefront();
+    });
+
+    document.getElementById('open-cart-btn').addEventListener('click', window.openCartDrawer);
+
+    const handleSearch = (e) => {
+      state.searchQuery = e.target.value;
+      document.getElementById('search-input-desktop').value = state.searchQuery;
+      document.getElementById('search-input-mobile').value = state.searchQuery;
+      renderProductsGrid();
+    };
+    document.getElementById('search-input-desktop').addEventListener('input', handleSearch);
+    document.getElementById('search-input-mobile').addEventListener('input', handleSearch);
+
+    document.getElementById('sort-select').addEventListener('change', (e) => {
+      state.sortBy = e.target.value;
+      renderProductsGrid();
+    });
+
+    setInterval(() => {
+      if (!state.isAdminView && !state.isSalesAuditView) {
+        const activeBanners = (state.banners || []).filter(b => b.active !== false);
+        if (activeBanners.length > 1) {
+          state.heroIndex = (state.heroIndex + 1) % activeBanners.length;
+          renderHeroSlider();
+        }
+      }
+    }, 6500);
+
+    window.addEventListener('DOMContentLoaded', async () => {
+      renderAllStorefront();
+      await initCloudFirestore();
+    });
+  </script>
+</body>
+</html>
