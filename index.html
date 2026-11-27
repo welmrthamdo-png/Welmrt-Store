@@ -987,6 +987,31 @@
       }
     }
 
+
+    // Quick localStorage cache for settings, banners, ads & categories (eliminates default-data flash on refresh)
+    const UI_CACHE_KEY = 'welmrt_ui_cache_v1';
+    function saveUiCache() {
+      try {
+        localStorage.setItem(UI_CACHE_KEY, JSON.stringify({
+          settings: state.settings,
+          categories: state.categories,
+          banners: state.banners,
+          ads: state.ads
+        }));
+      } catch {}
+    }
+    function loadUiCache() {
+      try {
+        const raw = localStorage.getItem(UI_CACHE_KEY);
+        if (!raw) return;
+        const data = JSON.parse(raw);
+        if (data.settings) state.settings = deepMerge(structuredClone(DEFAULT_SETTINGS), data.settings);
+        if (Array.isArray(data.categories) && data.categories.length) state.categories = data.categories;
+        if (Array.isArray(data.banners)) state.banners = data.banners;
+        if (Array.isArray(data.ads)) state.ads = data.ads;
+      } catch {}
+    }
+
     function readFileAsDataUrl(file) {
       return new Promise((resolve, reject) => {
         const reader = new FileReader();
@@ -1090,9 +1115,9 @@
 
       settings: structuredClone(DEFAULT_SETTINGS),
       categories: structuredClone(DEFAULT_CATEGORIES),
-      products: structuredClone(DEFAULT_PRODUCTS),
-      banners: structuredClone(DEFAULT_BANNERS),
-      ads: structuredClone(DEFAULT_ADS),
+      products: [],
+      banners: [],
+      ads: [],
       coupons: structuredClone(DEFAULT_COUPONS),
       orders: [], // Active orders (welmrt_orders)
       sales: [],  // Completed invoices (welmrt_sales)
@@ -1155,23 +1180,23 @@
         const app = initializeApp(firebaseConfig);
         db = getFirestore(app);
 
-        // 1. Seed initial data ONLY if Firestore collections are empty on first load
+        // 1. Seed initial data ONLY ONCE on very first store setup (when settings doc does not exist)
         const settingsRef = doc(db, 'welmrt_settings', 'main');
         const settingsSnap = await getDoc(settingsRef);
-        if (!settingsSnap.exists()) {
+        const isFirstTimeSetup = !settingsSnap.exists();
+
+        if (isFirstTimeSetup) {
           await setDoc(settingsRef, state.settings);
+          for (const c of DEFAULT_CATEGORIES) await setDoc(doc(db, 'welmrt_categories', c.id), c);
+          for (const p of DEFAULT_PRODUCTS) await setDoc(doc(db, 'welmrt_products', p.id), p);
+          for (const b of DEFAULT_BANNERS) await setDoc(doc(db, 'welmrt_banners', b.id), b);
+          for (const a of DEFAULT_ADS) await setDoc(doc(db, 'welmrt_ads', a.id), a);
+          for (const cp of DEFAULT_COUPONS) await setDoc(doc(db, 'welmrt_coupons', cp.id), cp);
         }
 
-        const catSnap = await getDocs(collection(db, 'welmrt_categories'));
-        if (catSnap.empty) {
-          for (const c of DEFAULT_CATEGORIES) {
-            await setDoc(doc(db, 'welmrt_categories', c.id), c);
-          }
-        }
-
-        // Smart Cache Check: Only download all products if local cache is empty or outdated
+        // Smart Cache Check: Load cached products (including empty array []) and sync if version changed
         const cached = await loadCatalogCache();
-        if (cached && Array.isArray(cached.products) && cached.products.length) {
+        if (cached && Array.isArray(cached.products)) {
           state.products = cached.products;
           state.cachedCatalogVersion = cached.version || 0;
           refreshActiveView();
@@ -1180,42 +1205,14 @@
         const remoteSettingsData = settingsSnap.exists() ? settingsSnap.data() : state.settings;
         const remoteVersion = Number(remoteSettingsData?.catalogVersion) || 1;
 
-        if (!cached || !cached.products?.length || state.cachedCatalogVersion !== remoteVersion) {
+        if (!cached || !Array.isArray(cached.products) || state.cachedCatalogVersion !== remoteVersion) {
           const prodSnap = await getDocs(collection(db, 'welmrt_products'));
-          if (prodSnap.empty) {
-            for (const p of DEFAULT_PRODUCTS) {
-              await setDoc(doc(db, 'welmrt_products', p.id), p);
-            }
-            state.products = structuredClone(DEFAULT_PRODUCTS);
-          } else {
-            const list = [];
-            prodSnap.forEach(d => list.push(d.data()));
-            state.products = list;
-          }
+          const list = [];
+          prodSnap.forEach(d => list.push(d.data()));
+          state.products = list;
           state.cachedCatalogVersion = remoteVersion;
           await saveCatalogCache(remoteVersion, state.products);
           refreshActiveView();
-        }
-
-        const banSnap = await getDocs(collection(db, 'welmrt_banners'));
-        if (banSnap.empty) {
-          for (const b of DEFAULT_BANNERS) {
-            await setDoc(doc(db, 'welmrt_banners', b.id), b);
-          }
-        }
-
-        const adSnap = await getDocs(collection(db, 'welmrt_ads'));
-        if (adSnap.empty) {
-          for (const a of DEFAULT_ADS) {
-            await setDoc(doc(db, 'welmrt_ads', a.id), a);
-          }
-        }
-
-        const coupSnap = await getDocs(collection(db, 'welmrt_coupons'));
-        if (coupSnap.empty) {
-          for (const cp of DEFAULT_COUPONS) {
-            await setDoc(doc(db, 'welmrt_coupons', cp.id), cp);
-          }
         }
 
         // 2. Real-time listeners (onSnapshot) for all collections
@@ -1224,6 +1221,7 @@
           updateFirebaseStatusBadge();
           if (snap.exists()) {
             state.settings = deepMerge(structuredClone(DEFAULT_SETTINGS), snap.data());
+            saveUiCache();
             const newVer = Number(state.settings.catalogVersion) || 1;
             if (newVer !== state.cachedCatalogVersion) {
               try {
@@ -1248,6 +1246,7 @@
           const list = [];
           snap.forEach(d => list.push(d.data()));
           if (list.length) state.categories = list;
+          saveUiCache();
           refreshActiveView();
         });
 
@@ -1257,6 +1256,7 @@
           const list = [];
           snap.forEach(d => list.push(d.data()));
           state.banners = list;
+          saveUiCache();
           refreshActiveView();
         });
 
@@ -1264,6 +1264,7 @@
           const list = [];
           snap.forEach(d => list.push(d.data()));
           state.ads = list;
+          saveUiCache();
           refreshActiveView();
         });
 
@@ -1386,6 +1387,7 @@
 
     function showToast(msg, type = 'success') {
       const container = document.getElementById('toast-container');
+      container.innerHTML = '';
       const el = document.createElement('div');
       const bg = type === 'error' ? 'bg-red-600' : type === 'warning' ? 'bg-amber-500 text-slate-900' : 'bg-slate-900';
       el.className = `${bg} text-white px-4 py-3 rounded-2xl shadow-xl text-xs sm:text-sm font-extrabold flex items-center justify-between gap-2 pointer-events-auto animate-fade-up`;
@@ -1571,13 +1573,29 @@
         } else {
           mediaHtml = `<div class="w-full h-24 bg-gradient-to-r from-brand to-amber-500 flex items-center justify-center text-white font-black text-lg px-4 text-center">${esc(title)}</div>`;
         }
-        return `
-          <div class="bg-white rounded-3xl overflow-hidden border border-slate-200/80 shadow-sm hover:shadow-md transition-all flex flex-col">
+        const rawLink = (ad.linkUrl || '').trim();
+        const safeHref = rawLink ? (/^https?:\/\//i.test(rawLink) ? rawLink : 'https://' + rawLink) : '';
+        const cardInner = `
             ${mediaHtml}
             <div class="p-4 space-y-1">
-              <h3 class="font-black text-sm sm:text-base text-ink">${esc(title)}</h3>
+              <h3 class="font-black text-sm sm:text-base text-ink flex items-center justify-between gap-2">
+                <span>${esc(title)}</span>
+                ${safeHref ? '<i data-lucide="external-link" class="w-4 h-4 text-brand shrink-0"></i>' : ''}
+              </h3>
               <p class="text-xs text-slate-600 font-semibold">${esc(desc)}</p>
             </div>
+        `;
+        if (safeHref) {
+          return `
+            <a href="${esc(safeHref)}" target="_blank" rel="noopener noreferrer"
+              class="bg-white rounded-3xl overflow-hidden border border-slate-200/80 shadow-sm hover:shadow-md hover:border-brand/40 transition-all flex flex-col cursor-pointer">
+              ${cardInner}
+            </a>
+          `;
+        }
+        return `
+          <div class="bg-white rounded-3xl overflow-hidden border border-slate-200/80 shadow-sm hover:shadow-md transition-all flex flex-col">
+            ${cardInner}
           </div>
         `;
       }).join('');
@@ -2772,7 +2790,16 @@
         const editing = state.products.find(p => p.id === state.editingProductId) || null;
         box.innerHTML = `
           <div class="space-y-6 animate-fade-up">
-            <h2 class="text-xl font-black text-ink">إدارة المنتجات (${state.products.length})</h2>
+            <div class="flex flex-wrap items-center justify-between gap-2">
+              <h2 class="text-xl font-black text-ink">إدارة المنتجات (${state.products.length})</h2>
+              ${state.products.length ? `
+                <button type="button" onclick="window.adminDeleteAllProducts()"
+                  class="bg-red-50 hover:bg-red-600 text-red-600 hover:text-white border border-red-200 font-extrabold text-xs px-3.5 py-2 rounded-xl flex items-center gap-1.5 transition-all">
+                  <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+                  <span>حذف جميع المنتجات</span>
+                </button>
+              ` : ''}
+            </div>
 
             <!-- Bulk Excel / CSV Import Card -->
             <div class="bg-emerald-50/70 rounded-3xl border border-emerald-200 p-4 sm:p-5 space-y-3">
@@ -3007,11 +3034,12 @@
             <!-- Dedicated Ad Spaces Manager -->
             <div class="bg-white rounded-3xl border border-slate-200 p-5 space-y-4">
               <h3 class="font-black text-sm text-brand">مساحة الإعلانات (صور سحابية أو فيديو محلي)</h3>
-              <form id="admin-ad-form" class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <form id="admin-ad-form" class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <input id="aad-title" type="text" required placeholder="عنوان الإعلان" class="bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-bold" />
                 <input id="aad-desc" type="text" placeholder="تفاصيل العرض أو الإعلان" class="bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-bold" />
+                <input id="aad-link" type="url" dir="ltr" placeholder="رابط عند النقر على الإعلان (اختياري) https://..." class="bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-bold" />
                 <input id="aad-media" type="file" accept="image/*,video/*" class="bg-slate-50 border border-slate-200 rounded-xl p-1.5 text-xs" />
-                <button type="submit" class="sm:col-span-3 bg-fresh text-white font-extrabold text-xs py-2.5 rounded-xl">إضافة إعلان جديد</button>
+                <button type="submit" class="sm:col-span-2 bg-fresh text-white font-extrabold text-xs py-2.5 rounded-xl">إضافة إعلان جديد</button>
               </form>
               <div class="space-y-2">
                 ${state.ads.map(ad => `
@@ -3292,6 +3320,29 @@
       showToast('تم حذف المنتج');
     };
 
+    window.adminDeleteAllProducts = async function() {
+      if (!state.products.length) return;
+      const ok = await askConfirm('حذف جميع المنتجات', `هل أنت متأكد من حذف جميع المنتجات (${state.products.length} منتج) نهائياً؟ لا يمكن التراجع عن هذا الإجراء.`);
+      if (!ok) return;
+      const ids = state.products.map(p => p.id);
+      if (db) {
+        try {
+          for (let i = 0; i < ids.length; i += 400) {
+            const chunk = ids.slice(i, i + 400);
+            const batch = writeBatch(db);
+            chunk.forEach(id => batch.delete(doc(db, 'welmrt_products', id)));
+            await batch.commit();
+          }
+        } catch (e) { console.error(e); }
+      }
+      state.products = [];
+      await bumpCatalogVersion();
+      renderAdminNav();
+      renderAdminMain();
+      showToast('تم حذف جميع المنتجات نهائياً');
+    };
+
+
     window.downloadProductsExcelTemplate = function() {
       if (!window.XLSX) {
         showToast('مكتبة Excel قيد التحميل، يرجى المحاولة بعد ثوانٍ', 'warning');
@@ -3522,6 +3573,7 @@
           titleEn: document.getElementById('aad-title').value.trim(),
           descAr: document.getElementById('aad-desc').value.trim(),
           descEn: document.getElementById('aad-desc').value.trim(),
+          linkUrl: (document.getElementById('aad-link')?.value || '').trim(),
           mediaDataUrl,
           videoId,
           mediaType,
@@ -3912,6 +3964,7 @@
     }, 6500);
 
     window.addEventListener('DOMContentLoaded', async () => {
+      loadUiCache();
       renderAllStorefront();
       await initCloudFirestore();
     });
