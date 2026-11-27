@@ -211,6 +211,26 @@
     <!-- Main Storefront Content -->
     <main class="flex-1 max-w-7xl w-full mx-auto px-3 sm:px-6 py-4 sm:py-6 space-y-6 sm:space-y-8">
 
+      <!-- Store Closed Screen (Shown when store is closed manually or by schedule) -->
+      <section id="store-closed-screen" class="hidden py-12 sm:py-20">
+        <div class="max-w-lg mx-auto bg-white rounded-3xl border border-slate-200 shadow-xl p-8 sm:p-10 text-center space-y-5 animate-fade-up">
+          <div class="w-20 h-20 mx-auto rounded-3xl bg-red-50 border border-red-100 flex items-center justify-center text-brand">
+            <i data-lucide="lock" class="w-10 h-10"></i>
+          </div>
+          <div class="space-y-2">
+            <h2 id="closed-screen-title" class="font-black text-2xl sm:text-3xl text-ink">المتجر مغلق حالياً</h2>
+            <p id="closed-screen-msg" class="text-sm text-slate-600 font-semibold leading-relaxed">
+              نعمل حالياً على تجهيز وتحديث المنتجات في ويلمرت. سنعود للعمل قريباً!
+            </p>
+          </div>
+          <div id="closed-screen-hours" class="hidden inline-flex items-center gap-2 bg-slate-100 text-slate-700 text-xs font-extrabold px-4 py-2.5 rounded-2xl">
+            <i data-lucide="clock" class="w-4 h-4 text-brand"></i>
+            <span id="closed-screen-hours-text"></span>
+          </div>
+        </div>
+      </section>
+
+      <div id="storefront-active-content" class="space-y-6 sm:space-y-8">
       <!-- Hero Banner Slider -->
       <section id="hero-section" class="relative rounded-3xl overflow-hidden shadow-lg bg-slate-900 min-h-[200px] sm:min-h-[300px]">
         <div id="hero-slides-container" class="relative w-full h-[210px] sm:h-[320px]"></div>
@@ -255,6 +275,7 @@
         <div id="products-grid" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-5"></div>
         <div id="infinite-scroll-sentinel" class="h-10 w-full flex items-center justify-center text-xs font-bold text-slate-400"></div>
       </section>
+      </div>
     </main>
 
     <!-- Store Footer -->
@@ -750,6 +771,13 @@
       cloudinary: {
         cloudName: '',
         uploadPreset: ''
+      },
+      storeStatus: {
+        isClosed: false,
+        closedMessage: 'نعمل حالياً على تجهيز وتحديث المنتجات في ويلمرت. سنعود للعمل قريباً!',
+        scheduleEnabled: false,
+        openTime: '09:00',
+        closeTime: '23:00'
       },
       catalogVersion: 1
     };
@@ -1436,6 +1464,75 @@
     // =========================================================================
     // 6. STOREFRONT RENDERING
     // =========================================================================
+    function isStoreCurrentlyClosed() {
+      const st = state.settings?.storeStatus || {};
+      if (st.isClosed) return { closed: true, reason: 'manual' };
+      if (st.scheduleEnabled && st.openTime && st.closeTime) {
+        const now = new Date();
+        const curMins = now.getHours() * 60 + now.getMinutes();
+        const [oh, om] = st.openTime.split(':').map(Number);
+        const [ch, cm] = st.closeTime.split(':').map(Number);
+        const openMins = (oh || 0) * 60 + (om || 0);
+        const closeMins = (ch || 0) * 60 + (cm || 0);
+        let isOpenNow = false;
+        if (openMins === closeMins) {
+          isOpenNow = true;
+        } else if (openMins < closeMins) {
+          isOpenNow = curMins >= openMins && curMins < closeMins;
+        } else {
+          // Overnight schedule (e.g. 10:00 -> 02:00)
+          isOpenNow = curMins >= openMins || curMins < closeMins;
+        }
+        if (!isOpenNow) return { closed: true, reason: 'schedule' };
+      }
+      return { closed: false, reason: '' };
+    }
+
+    function applyStoreClosedState() {
+      const status = isStoreCurrentlyClosed();
+      const closedScreen = document.getElementById('store-closed-screen');
+      const activeContent = document.getElementById('storefront-active-content');
+      const aiFab = document.getElementById('ai-chat-fab');
+      const cartBtn = document.getElementById('open-cart-btn');
+      const budgetBtn = document.getElementById('open-budget-btn');
+      if (!closedScreen || !activeContent) return;
+
+      if (status.closed) {
+        const st = state.settings?.storeStatus || {};
+        closedScreen.classList.remove('hidden');
+        activeContent.classList.add('hidden');
+        if (aiFab) aiFab.classList.add('hidden');
+        if (cartBtn) cartBtn.classList.add('hidden');
+        if (budgetBtn) budgetBtn.classList.add('hidden');
+
+        const titleEl = document.getElementById('closed-screen-title');
+        const msgEl = document.getElementById('closed-screen-msg');
+        const hoursBox = document.getElementById('closed-screen-hours');
+        const hoursText = document.getElementById('closed-screen-hours-text');
+
+        if (titleEl) titleEl.textContent = state.lang === 'ar' ? 'المتجر مغلق حالياً' : 'Store is Currently Closed';
+        if (msgEl) {
+          msgEl.textContent = st.closedMessage || (state.lang === 'ar'
+            ? 'نعمل حالياً على تجهيز وتحديث المنتجات في ويلمرت. سنعود للعمل قريباً!'
+            : 'We are currently updating our store. Please check back soon!');
+        }
+        if (st.scheduleEnabled && st.openTime && st.closeTime && hoursBox && hoursText) {
+          hoursBox.classList.remove('hidden');
+          hoursText.textContent = state.lang === 'ar'
+            ? `أوقات العمل اليومية: من ${st.openTime} حتى ${st.closeTime}`
+            : `Daily Hours: ${st.openTime} – ${st.closeTime}`;
+        } else if (hoursBox) {
+          hoursBox.classList.add('hidden');
+        }
+      } else {
+        closedScreen.classList.add('hidden');
+        activeContent.classList.remove('hidden');
+        if (aiFab) aiFab.classList.remove('hidden');
+        if (cartBtn) cartBtn.classList.remove('hidden');
+        if (budgetBtn) budgetBtn.classList.remove('hidden');
+      }
+    }
+
     function applyBrandingAndTranslations() {
       const s = state.settings;
       document.documentElement.style.setProperty('--color-brand', s.brandColor || '#D91E18');
@@ -1834,6 +1931,7 @@
 
     function renderAllStorefront() {
       applyBrandingAndTranslations();
+      applyStoreClosedState();
       renderHeroSlider();
       renderAdsSection();
       renderCategoriesBar();
@@ -2608,6 +2706,7 @@
         { id: 'products', label: 'إدارة المنتجات', icon: 'package' },
         { id: 'categories', label: 'إدارة الفئات', icon: 'folder-tree' },
         { id: 'cms', label: 'الواجهة والإعلانات', icon: 'palette' },
+        { id: 'storeStatus', label: 'فتح وإغلاق المتجر', icon: 'power' },
         { id: 'settings', label: 'الدفع والتوصيل والإعدادات', icon: 'settings' }
       ];
 
@@ -3053,6 +3152,89 @@
           </div>
         `;
         bindCmsForms();
+        return;
+      }
+
+      // TAB: STORE STATUS & AUTO SCHEDULE
+      if (tab === 'storeStatus') {
+        const st = state.settings.storeStatus || {};
+        const liveStatus = isStoreCurrentlyClosed();
+        box.innerHTML = `
+          <div class="space-y-6 animate-fade-up">
+            <div class="flex flex-wrap items-center justify-between gap-3">
+              <div>
+                <h2 class="text-xl font-black text-ink">فتح وإغلاق المتجر والمؤقت التلقائي</h2>
+                <p class="text-xs text-slate-500 font-semibold">يمكنك إغلاق المتجر أمام الزبائن أثناء إضافة المنتجات والتعديل، أو ضبط أوقات عمل يومية ليفتح ويغلق تلقائياً.</p>
+              </div>
+              <span class="inline-flex items-center gap-2 px-4 py-2 rounded-2xl text-xs font-black ${
+                liveStatus.closed ? 'bg-red-100 text-red-700 border border-red-200' : 'bg-emerald-100 text-fresh border border-emerald-200'
+              }">
+                <span class="w-2.5 h-2.5 rounded-full ${liveStatus.closed ? 'bg-red-600' : 'bg-fresh'}"></span>
+                <span>${liveStatus.closed ? 'الحالة الآن: المتجر مغلق أمام الزبائن' : 'الحالة الآن: المتجر مفتوح للزبائن'}</span>
+              </span>
+            </div>
+
+            <!-- Manual Open / Close Toggle Card -->
+            <div class="bg-white rounded-3xl border border-slate-200 p-5 sm:p-6 shadow-xs space-y-4">
+              <div class="flex flex-wrap items-center justify-between gap-4">
+                <div class="space-y-1">
+                  <h3 class="font-black text-base text-ink flex items-center gap-2">
+                    <i data-lucide="power" class="w-5 h-5 text-brand"></i>
+                    <span>التحكم اليدوي الفوري (فتح / إغلاق)</span>
+                  </h3>
+                  <p class="text-xs text-slate-500 font-semibold">عند الإغلاق اليدوي، تختفي جميع المنتجات والفئات عن الزبائن، بينما يمكنك أنت الاستمرار بإضافة وتعديل كل شيء من لوحة التحكم.</p>
+                </div>
+                <button type="button" onclick="window.adminToggleStoreClosed()"
+                  class="${st.isClosed ? 'bg-fresh hover:opacity-95' : 'bg-red-600 hover:bg-red-700'} text-white font-black text-sm px-6 py-3.5 rounded-2xl shadow-lg flex items-center gap-2 transition-all active:scale-95 shrink-0">
+                  <i data-lucide="${st.isClosed ? 'unlock' : 'lock'}" class="w-4 h-4"></i>
+                  <span>${st.isClosed ? 'فتح المتجر الآن' : 'إغلاق المتجر الآن'}</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- Auto Schedule & Custom Message Form -->
+            <form id="admin-store-status-form" class="bg-white rounded-3xl border border-slate-200 p-5 sm:p-6 shadow-xs space-y-5">
+              <div class="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 pb-4">
+                <div>
+                  <h3 class="font-black text-base text-ink flex items-center gap-2">
+                    <i data-lucide="clock" class="w-5 h-5 text-brand"></i>
+                    <span>المؤقت التلقائي لأوقات الدوام</span>
+                  </h3>
+                  <p class="text-xs text-slate-500 font-semibold">عند تفعيله، يفتح المتجر تلقائياً في ساعة الفتح ويغلق تلقائياً في ساعة الإغلاق كل يوم.</p>
+                </div>
+                <label class="inline-flex items-center gap-2.5 bg-slate-50 border border-slate-200 px-4 py-2.5 rounded-2xl cursor-pointer">
+                  <input id="st-sched-en" type="checkbox" ${st.scheduleEnabled ? 'checked' : ''} class="w-5 h-5 accent-brand" />
+                  <span class="text-xs font-extrabold text-ink">تفعيل المؤقت التلقائي</span>
+                </label>
+              </div>
+
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div class="bg-slate-50 p-4 rounded-2xl border border-slate-200 space-y-1.5">
+                  <label class="block text-xs font-extrabold text-ink">وقت فتح المتجر تلقائياً</label>
+                  <input id="st-open-time" type="time" value="${esc(st.openTime || '09:00')}"
+                    class="w-full bg-white border border-slate-300 rounded-xl px-3.5 py-2.5 text-sm font-black outline-none focus:border-brand" />
+                </div>
+                <div class="bg-slate-50 p-4 rounded-2xl border border-slate-200 space-y-1.5">
+                  <label class="block text-xs font-extrabold text-ink">وقت إغلاق المتجر تلقائياً</label>
+                  <input id="st-close-time" type="time" value="${esc(st.closeTime || '23:00')}"
+                    class="w-full bg-white border border-slate-300 rounded-xl px-3.5 py-2.5 text-sm font-black outline-none focus:border-brand" />
+                </div>
+              </div>
+
+              <div class="space-y-1.5">
+                <label class="block text-xs font-extrabold text-ink">الرسالة التي تظهر للزبون عندما يكون المتجر مغلقاً</label>
+                <textarea id="st-closed-msg" rows="2"
+                  class="w-full bg-slate-50 border border-slate-200 focus:border-brand rounded-xl px-3.5 py-2.5 text-xs sm:text-sm font-semibold outline-none">${esc(st.closedMessage || '')}</textarea>
+              </div>
+
+              <button type="submit" class="bg-slate-900 hover:bg-brand text-white font-extrabold text-xs sm:text-sm px-6 py-3 rounded-2xl transition-colors">
+                حفظ إعدادات الإغلاق والمؤقت
+              </button>
+            </form>
+          </div>
+        `;
+        refreshIcons();
+        bindStoreStatusForm();
         return;
       }
 
@@ -3605,6 +3787,32 @@
       renderAdminMain();
     };
 
+    window.adminToggleStoreClosed = async function() {
+      if (!state.settings.storeStatus) state.settings.storeStatus = structuredClone(DEFAULT_SETTINGS.storeStatus);
+      state.settings.storeStatus.isClosed = !state.settings.storeStatus.isClosed;
+      saveUiCache();
+      await saveSettingsToCloud();
+      renderAdminMain();
+      showToast(state.settings.storeStatus.isClosed ? 'تم إغلاق المتجر أمام الزبائن 🔒' : 'تم فتح المتجر للزبائن بنجاح 🔓');
+    };
+
+    function bindStoreStatusForm() {
+      const form = document.getElementById('admin-store-status-form');
+      if (!form) return;
+      form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        if (!state.settings.storeStatus) state.settings.storeStatus = structuredClone(DEFAULT_SETTINGS.storeStatus);
+        state.settings.storeStatus.scheduleEnabled = document.getElementById('st-sched-en').checked;
+        state.settings.storeStatus.openTime = document.getElementById('st-open-time').value || '09:00';
+        state.settings.storeStatus.closeTime = document.getElementById('st-close-time').value || '23:00';
+        state.settings.storeStatus.closedMessage = document.getElementById('st-closed-msg').value.trim();
+        saveUiCache();
+        await saveSettingsToCloud();
+        renderAdminMain();
+        showToast('تم حفظ إعدادات المؤقت وحالة المتجر سحابياً ✓');
+      });
+    }
+
     function bindSettingsForms() {
       document.getElementById('admin-payments-form').addEventListener('submit', async (e) => {
         e.preventDefault();
@@ -3962,6 +4170,13 @@
         }
       }
     }, 6500);
+
+    // Check automatic store open/close schedule every 30 seconds
+    setInterval(() => {
+      if (!state.isAdminView && !state.isSalesAuditView) {
+        applyStoreClosedState();
+      }
+    }, 30000);
 
     window.addEventListener('DOMContentLoaded', async () => {
       loadUiCache();
